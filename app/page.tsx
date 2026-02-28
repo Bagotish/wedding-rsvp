@@ -1,65 +1,127 @@
-import Image from "next/image";
+import { createClient } from '@supabase/supabase-js';
+import { v2 as cloudinary } from 'cloudinary';
+import { revalidatePath } from 'next/cache';
+import Image from 'next/image';
 
-export default function Home() {
+// 1. Konfigurasi Client
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// 2. Server Action untuk Hantar RSVP
+async function submitRSVP(formData: FormData) {
+  'use server';
+
+  const name = formData.get('name') as string;
+  const attendance = formData.get('attendance') as string;
+  const file = formData.get('image') as File;
+  let imageUrl = '';
+
+  // Upload Gambar ke Cloudinary jika ada fail
+  if (file && file.size > 0) {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const uploadResponse = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: 'wedding_rsvp', resource_type: 'auto' },
+        (error, result) => {
+          if (error) reject(error);
+          resolve(result);
+        }
+      ).end(buffer);
+    });
+    imageUrl = (uploadResponse as any).secure_url;
+  }
+
+  // Simpan ke Supabase
+  await supabase.from('guests').insert([
+    {
+      name,
+      attendance,
+      image_url: imageUrl,
+    },
+  ]);
+
+  // Refresh page untuk paparkan data baru
+  revalidatePath('/');
+}
+
+// 3. UI Halaman Utama
+export default async function Home() {
+  // Ambil data tetamu
+  const { data: guests } = await supabase.from('guests').select('*').order('created_at', { ascending: false });
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-gray-50 p-6 md:p-10">
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">RSVP Majlis Kahwin 💍</h1>
+
+      {/* Borang RSVP */}
+      <form action={submitRSVP} className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-10">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">Nama Anda</label>
+          <input type="text" name="name" required className="mt-1 block w-full border rounded-md p-2" />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">Kehadiran</label>
+          <select name="attendance" className="mt-1 block w-full border rounded-md p-2">
+            <option value="Hadir">Hadir</option>
+            <option value="Tidak Hadir">Tidak Hadir</option>
+          </select>
         </div>
-      </main>
-    </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">Gambar (Optional)</label>
+          // Bahagian Borang dalam app/page.tsx
+<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700">Ambil Gambar (Kamera)</label>
+  <div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700">Ambil Gambar (Kamera)</label>
+  <input 
+    type="file" 
+    name="image" 
+    accept="image/*" 
+    // Tukar kepada salah satu daripada ini:
+    capture="environment" // Untuk kamera belakang (biasanya untuk gambar suasana)
+    // capture="user"     // Untuk kamera depan (selfie)
+    className="mt-1 block w-full" 
+  />
+</div>
+</div>        
+</div>
+
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
+          Hantar RSVP
+        </button>
+      </form>
+
+      {/* Senarai Tetamu */}
+      <h2 className="text-2xl font-semibold text-center mb-6">Tetamu yang hadir ({guests?.length || 0})</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {guests?.map((guest) => (
+          <div key={guest.id} className="bg-white p-4 rounded-lg shadow border text-center">
+            {guest.image_url && (
+              <Image
+                src={guest.image_url}
+                alt={guest.name}
+                width={200}
+                height={200}
+                className="rounded-full mx-auto mb-3 h-32 w-32 object-cover"
+              />
+            )}
+            <p className="font-bold text-lg">{guest.name}</p>
+            <p className="text-sm text-gray-600">{guest.attendance}</p>
+          </div>
+        ))}
+      </div>
+    </main>
   );
 }
