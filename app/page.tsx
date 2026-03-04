@@ -11,7 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 // Import required modules
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence,Variants } from 'framer-motion';
 
 // --- Konfigurasi Supabase ---
 const supabase = createClient(
@@ -185,22 +185,29 @@ const handleCategoryChange1 = (cat:any) => {
 };
 
 
-const pageVariants = {
+const pageVariants: Variants = {
   initial: (direction: number) => ({
-    rotateY: direction > 0 ? -110 : 110,
+    rotateY: direction > 0 ? 90 : -90,
     opacity: 0,
-    transformOrigin: direction > 0 ? "left center" : "right center",
+    transformOrigin: direction > 0 ? "left" : "right",
   }),
   animate: {
     rotateY: 0,
     opacity: 1,
-    transition: { duration: 0.8, ease: [0.645, 0.045, 0.355, 1] },
+    transition: {
+      duration: 0.8,
+      // Gunakan "as const" untuk memberitahu TS ini adalah fixed bezier array
+      ease: [0.645, 0.045, 0.355, 1.0] as const, 
+    },
   },
   exit: (direction: number) => ({
-    rotateY: direction > 0 ? 110 : -110,
+    rotateY: direction > 0 ? -90 : 90,
     opacity: 0,
-    transformOrigin: direction > 0 ? "right center" : "left center",
-    transition: { duration: 0.6 },
+    transformOrigin: direction > 0 ? "right" : "left",
+    transition: {
+      duration: 0.8,
+      ease: [0.645, 0.045, 0.355, 1.0] as const,
+    },
   }),
 };
 // Tambah state direction
