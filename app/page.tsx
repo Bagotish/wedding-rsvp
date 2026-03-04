@@ -11,6 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 // Import required modules
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Konfigurasi Supabase ---
 const supabase = createClient(
@@ -44,7 +45,6 @@ export default function Home() {
       .order('created_at', { ascending: false });
     
     if (error) console.error('Error fetching data:', error);
-    console.log('hehe',data)
     if (data) setData(data);
   };
 
@@ -118,16 +118,42 @@ export default function Home() {
     }
   };
 
-  // Komponen Navigasi Utama
-  const NavigationBar = () => (
-    <div className="flex justify-center mb-10 mt-6">
-      <div className="flex border border-stone-400 rounded-sm overflow-hidden text-xs">
-        <button onClick={() => setActivePage('cover')} className={`px-4 py-2 ${activePage === 'invitation' ? 'bg-stone-900 text-white' : 'bg-white text-stone-900'}`}>Invitation</button>
-        <button onClick={() => setActivePage('rsvp')} className={`px-4 py-2 border-l border-r border-stone-400 ${activePage === 'rsvp' ? 'bg-stone-900 text-white' : 'bg-white text-stone-900'}`}>RSVP & Moments</button>
-        <button onClick={() => setActivePage('book')} className={`px-4 py-2 ${activePage === 'book' ? 'bg-stone-900 text-white' : 'bg-white text-stone-900'}`}>Guestbook</button>
-      </div>
-    </div>
-  );
+// --- KOMPONEN NAVIGASI GAYA BUKU (BOOK TABS) ---
+const NavigationBar = () => (
+  <div className="flex justify-center mb-12 relative">
+    {/* Garisan halus melintang sebagai sandaran tab */}
+    <div className="absolute bottom-0 w-64 h-[1px] bg-stone-200"></div>
+    
+    <nav className="flex items-end gap-1">
+      {[
+        { id: 'invitation', label: 'Invitation' },
+        { id: 'rsvp', label: 'RSVP & Moments' },
+        { id: 'book', label: 'Guestbook' }
+      ].map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActivePage(tab.id as any)}
+          className={`
+            relative px-6 py-2 text-[10px] tracking-[0.2em] uppercase transition-all duration-300
+            ${activePage === tab.id 
+              ? 'bg-[#FDFBF6] border-t border-l border-r border-stone-300 text-stone-900 -translate-y-[1px] z-20' 
+              : 'bg-stone-100/50 border-t border-l border-r border-stone-200 text-stone-400 hover:text-stone-600 z-10'}
+            rounded-t-md
+          `}
+          style={{ 
+            boxShadow: activePage === tab.id ? '0 -2px 10px rgba(0,0,0,0.02)' : 'none' 
+          }}
+        >
+          {tab.label}
+          {/* Menutup garisan bawah bila tab aktif supaya nampak bercantum dengan helaian */}
+          {activePage === tab.id && (
+            <div className="absolute -bottom-[1px] left-0 w-full h-[2px] bg-[#FDFBF6] z-30"></div>
+          )}
+        </button>
+      ))}
+    </nav>
+  </div>
+);
 // 1. State untuk kategori aktif ('rsvp' atau 'moments')
 const [activeCategory, setActiveCategory] = useState('rsvp');
 const [activeCategory1, setActiveCategory1] = useState('form');
@@ -157,9 +183,51 @@ const handleCategoryChange1 = (cat:any) => {
   setActiveCategory1(cat);
   setRsvpSubTab(cat)
 };
+
+
+const pageVariants = {
+  initial: (direction: number) => ({
+    rotateY: direction > 0 ? -110 : 110,
+    opacity: 0,
+    transformOrigin: direction > 0 ? "left center" : "right center",
+  }),
+  animate: {
+    rotateY: 0,
+    opacity: 1,
+    transition: { duration: 0.8, ease: [0.645, 0.045, 0.355, 1] },
+  },
+  exit: (direction: number) => ({
+    rotateY: direction > 0 ? 110 : -110,
+    opacity: 0,
+    transformOrigin: direction > 0 ? "right center" : "left center",
+    transition: { duration: 0.6 },
+  }),
+};
+// Tambah state direction
+const [direction, setDirection] = useState(0);
+
+// Gantikan cara panggil setActivePage dengan fungsi ini
+const paginate = (newPage: 'cover' | 'invitation' | 'rsvp' | 'book') => {
+  const pages = ['cover', 'invitation', 'rsvp', 'book'];
+  const currentIndex = pages.indexOf(activePage);
+  const nextIndex = pages.indexOf(newPage);
+  
+  setDirection(nextIndex > currentIndex ? 1 : -1);
+  setActivePage(newPage);
+};
   return (
     <main className="min-h-screen bg-[#FDFBF6] p-4 md:p-8 font-serif text-stone-900">
-      
+      <AnimatePresence mode="wait" custom={direction}>
+        <motion.div
+          key={activePage}
+          custom={direction}
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          style={{ backfaceVisibility: 'hidden' }}
+          className="w-full h-full"
+        >
       {/* --- Komponen Snackbar --- */}
       {snackbar.show && (
         <div className={`fixed bottom-5 right-5 z-50 px-6 py-3 rounded-sm text-white text-sm shadow-lg ${snackbar.type === 'success' ? 'bg-emerald-700' : 'bg-red-700'}`}>
@@ -175,7 +243,7 @@ const handleCategoryChange1 = (cat:any) => {
           <div className="flex flex-col items-center justify-center min-h-[85vh] text-center animate-in fade-in duration-1000">
             <p className="text-sm tracking-[0.3em] text-stone-500 uppercase mb-4">Wedding Invitation</p>
             <h1 className="text-7xl md:text-8xl font-bold tracking-widest text-stone-900 mb-6">Guestbook</h1>
-            <p className="text-4xl md:text-5xl font-light italic text-stone-700 mb-12">Farhan <span className="font-serif not-italic text-stone-400">&</span> Nurul</p>
+            <p className="text-4xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
             <button 
               onClick={() => setActivePage('invitation')}
               className="px-12 py-4 border-2 border-stone-900 text-stone-900 text-sm tracking-widest uppercase font-medium hover:bg-stone-900 hover:text-white transition-all duration-300 rounded-sm"
@@ -189,11 +257,14 @@ const handleCategoryChange1 = (cat:any) => {
         {activePage === 'invitation' && (
           <div className="animate-in fade-in duration-500">
             <NavigationBar />
-            <div className="text-center mt-20">
+            <header className="text-center mb-6">
+
             <h1 className="text-3xl md:text-4xl font-serif font-bold italic text-stone-800 tracking-widest">Invitation</h1>
+            <p className="text-xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
               <p className="text-stone-600 mt-4">[Sila isi kandungan jemputan di sini]</p>
+              </header>
+
             </div>
-          </div>
         )}
 
         {/* --- PAGE 3: RSVP & MOMENTS --- */}
@@ -203,8 +274,8 @@ const handleCategoryChange1 = (cat:any) => {
             <header className="text-center mb-10">
               {/* <h1 className="text-4xl font-bold tracking-widest text-stone-900 mb-2">RSVP & Moments</h1> */}
               <h1 className="text-3xl md:text-4xl font-bold font-serif italic text-stone-800 tracking-widest">RSVP & Moments</h1>
-              <p className="text-xl font-light italic text-stone-700">Farhan & Nurul</p>
-            </header>
+              <p className="text-xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
+              </header>
 
             {/* Statistik */}
              {/* Sub-Tab Switcher */}
@@ -301,7 +372,7 @@ const handleCategoryChange1 = (cat:any) => {
       <SwiperSlide key={`${item.id}-${index}`} className="h-auto">
         
         {/* --- KAD POLAROID --- */}
-        <div className="bg-white p-5 rounded-sm shadow-md border border-stone-100 h-[110px] flex flex-col justify-between transition-all duration-500">
+        <div className="bg-white p-5 rounded-sm shadow-md border border-stone-100 h-[110px] w-[130px] flex flex-col justify-between transition-all duration-500">
           
           <div className="text-center">
             {/* Nama Guest */}
@@ -316,7 +387,7 @@ const handleCategoryChange1 = (cat:any) => {
             </div>
             
             {/* Ucapan */}
-            <p className="text-xs sm:text-sm text-stone-700 italic leading-relaxed line-clamp-4">
+            <p className="text-xs sm:text-sm text-stone-700 italic leading-relaxed line-clamp-1">
               "{item.message}"
             </p>
           </div>
@@ -340,7 +411,7 @@ const handleCategoryChange1 = (cat:any) => {
                       <input name="name" required className="w-full mt-1 outline-none text-lg" />
                   </div>
                   <div >
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Share Your Moments on the wedding:</label>
+                      <label className="text-xs uppercase tracking-widest text-stone-500">Share Your Moments on the wedding day:</label>
                   </div>
 
                   <div className="border-2 border-dashed border-stone-300 p-6 text-center">
@@ -375,11 +446,12 @@ const handleCategoryChange1 = (cat:any) => {
 
         {/* --- PAGE 4: GUESTBOOK --- */}
         {activePage === 'book' && (
-          <div className="animate-in fade-in duration-700 max-w-5xl mx-auto px-4 py-8 min-h-screen flex flex-col relative">
+          <div className="animate-in fade-in duration-500">
           <NavigationBar />
           
           <header className="text-center mb-6">
             <h1 className="text-3xl md:text-4xl font-serif font-bold italic text-stone-800 tracking-widest">Guestbook</h1>
+            <p className="text-xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
           </header>
     
           {/* --- TAB PEMBAHAGIAN (RSVP vs MOMENTS) --- */}
@@ -419,9 +491,9 @@ const handleCategoryChange1 = (cat:any) => {
                   </div>
                 </div>
                 <div className="max-w-[150px] md:max-w-[240px] mt-4 text-center">
-                  <p className="font-handwriting text-base md:text-2xl text-[#5a4d31] leading-tight line-clamp-3 italic italic opacity-90">
-                    "{item.message}"
-                  </p>
+                <p className="font-handwriting text-base md:text-xl text-[#6b5d41] leading-tight text-center italic line-clamp-5 break-words overflow-hidden w-full px-2">
+  "{item.message}"
+</p>
                 </div>
               </>
             ) : (
@@ -430,10 +502,9 @@ const handleCategoryChange1 = (cat:any) => {
                 <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-stone-300"></div>
                 <div className="w-full">
                 {/* line-clamp-5 untuk nota supaya boleh baca lebih sikit sebab ruang luas */}
-                <p className="font-handwriting text-xl md:text-3xl text-[#6b5d41] leading-relaxed text-center italic line-clamp-5">
-                  "{item.message}"
-                </p>
-              </div>
+                <p className="font-handwriting text-base md:text-xl text-[#6b5d41] leading-tight text-center italic line-clamp-5 break-words overflow-hidden w-full px-2">
+  "{item.message}"
+</p>              </div>
               </div>
             )}
                 <p className="font-handwriting text-sm md:text-lg text-stone-400 mt-2">-{item.name || 'Guest'}-</p>
@@ -457,13 +528,27 @@ const handleCategoryChange1 = (cat:any) => {
               onClick={() => setSelectedItem(null)}
             >✕</button>
 
-            {selectedItem.image_url && (
+            {selectedItem.image_url ? (
+              <div>
               <div className="relative aspect-square w-full mb-8 shadow-md border-4 border-white">
                 <Image src={selectedItem.image_url} alt={selectedItem.name} fill className="object-cover" />
               </div>
-            )}
-
-            <div className="text-center">
+              <div className="text-center">
+              {/* Gunakan class break-words dan w-full untuk memaksa teks putus dan sambung di baris baru */}
+              <p className="font-handwriting text-sm md:text-xl text-[#5a4d31] leading-relaxed mb-6 w-full break-words px-2">
+                "{selectedItem.message}"
+              </p>
+              <div className="w-12 h-px bg-stone-200 mx-auto mb-4"></div>
+              <p className="font-handwriting text-xl md:text-2xl text-stone-500 italic">
+                -{selectedItem.name}-
+              </p>
+              <p className="text-[10px] text-stone-300 uppercase tracking-[0.2em] mt-2">
+                {new Date(selectedItem.created_at).toLocaleDateString()}
+              </p>
+            </div></div>
+              
+            ):(
+              <div className="text-center">
               {/* Gunakan class break-words dan w-full untuk memaksa teks putus dan sambung di baris baru */}
               <p className="font-handwriting text-2xl md:text-4xl text-[#5a4d31] leading-relaxed mb-6 w-full break-words px-2">
                 "{selectedItem.message}"
@@ -476,6 +561,9 @@ const handleCategoryChange1 = (cat:any) => {
                 {new Date(selectedItem.created_at).toLocaleDateString()}
               </p>
             </div>
+            )}
+
+            
           </div>
         </div>
       )}
@@ -490,6 +578,8 @@ const handleCategoryChange1 = (cat:any) => {
 )}
 
       </div>
+      </motion.div>
+      </AnimatePresence>
     </main>
   );
 }
