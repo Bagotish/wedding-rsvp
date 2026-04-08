@@ -1,592 +1,911 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
-// Import Swiper React components
-import { Swiper, SwiperSlide } from 'swiper/react';
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-// Import required modules
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { motion, AnimatePresence,Variants } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Konfigurasi Supabase ---
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function Home() {
-  const [activePage, setActivePage] = useState<'cover' | 'invitation' | 'rsvp' | 'book'>('cover');
-  const [rsvpSubTab, setRsvpSubTab] = useState<'form' | 'moments'>('form');
+export default function WeddingApp() {
+  
+  const [activeTab, setActiveTab] = useState<'info' | 'action' | 'rolls'>('info');
+  const [subTabAction, setSubTabAction] = useState<'rsvp' | 'live'>('rsvp');
+  const [subTabRolls, setSubTabRolls] = useState<'wishes' | 'moments'>('wishes');
+  const [isCoverOpen, setIsCoverOpen] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [capturedFile, setCapturedFile] = useState<File | null>(null);
+const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
-  // --- State untuk Snackbar ---
-  const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
+  // Fetch Data
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: results } = await supabase.from('guests').select('*').order('created_at', { ascending: false });
+      if (results) setData(results);
+    };
+    fetchData();
+  }, [activeTab, subTabRolls]);
 
-  // --- Fungsi untuk Tunjuk Snackbar ---
-  const showSnackbar = (message: string, type: 'success' | 'error' = 'success') => {
-    setSnackbar({ show: true, message, type });
-    setTimeout(() => {
-      setSnackbar({ show: false, message: '', type: 'success' });
-    }, 4000); // Hilang selepas 4 saat
-  };
-
-  // --- Fungsi Fetch Data ---
-  const fetchData = async () => {
-    const { data, error } = await supabase
-      .from('guests')
-      .select('*')
-      .eq('is_visible', true)
-      .order('created_at', { ascending: false });
-    
-    if (error) console.error('Error fetching data:', error);
-    if (data) setData(data);
-  };
-
-  useEffect(() => { fetchData(); }, []);
-
-  // --- Kira Statistik Tetamu ---
-  const countHadir = data.filter(i => i.attendance === 'Hadir' && i.type==='rsvp').length;
-  const countTidakHadir = data.filter(i => i.attendance === 'Tidak Hadir' && i.type==='rsvp').length;
-
-  // --- Fungsi Submit Data ---
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: string) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 'live') => {
     e.preventDefault();
     setLoading(true);
-    
-    const formElement = e.currentTarget;
-    const formData = new FormData(formElement);
-    
-    const name = formData.get('name') as string;
-    const message = formData.get('message') as string;
-    const attendance = formData.get('attendance') as string || 'Hadir';
-    const file = formData.get('image') as File;
-    let imageUrl = '';
-  
+    const formData = new FormData(e.currentTarget);
     try {
-      // Upload ke Cloudinary
-      if (file && file.size > 0) {
+      let imageUrl = '';
+      if (capturedFile) {
         const cloudData = new FormData();
-        cloudData.append('file', file);
+        cloudData.append('file', capturedFile);
         cloudData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
-  
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          { method: 'POST', body: cloudData }
-        );
-  
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: cloudData });
         const fileData = await res.json();
-        
-        if (!res.ok) throw new Error(fileData.error?.message || 'Gagal upload gambar');
-        
         imageUrl = fileData.secure_url;
       }
-  
-      // Insert ke Supabase
-      const { data: insertedData, error: supabaseError } = await supabase
-        .from('guests')
-        .insert([{ 
-          name, 
-          attendance, 
-          message, 
-          image_url: imageUrl, 
-          type,
-          is_visible: true 
-        }])
-        .select();
-  
-      if (supabaseError) throw supabaseError;
-      if (insertedData && insertedData.length > 0) {
-        setData((prevData) => [insertedData[0], ...prevData]);
-      }
-  
-      // GANTI ALERT DENGAN SNACKBAR
-      showSnackbar(type === 'rsvp' ? 'RSVP berjaya dihantar!' : 'Moment berjaya dikongsi!', 'success');
-      formElement.reset();
-  
-    } catch (err: any) {
-      console.error('Error detail:', err);
-      // GANTI ALERT DENGAN SNACKBAR
-      showSnackbar('Maaf, ralat berlaku: ' + err.message, 'error');
-    } finally {
-      setLoading(false);
-    }
+      await supabase.from('guests').insert([{ 
+        name: formData.get('name'), 
+        attendance: formData.get('attendance') || 'Hadir', 
+        message: formData.get('message'), 
+        image_url: imageUrl, 
+        type, 
+        is_visible: true 
+      }]);
+      setPreviewUrl(null);
+      setCapturedFile(null);
+      setActiveTab('rolls');
+      setSubTabRolls(type === 'rsvp' ? 'wishes' : 'moments');
+    } catch (err) { alert("Error!"); } finally { setLoading(false); }
   };
+const [isOpen, setIsOpen] = useState(false);
 
-// --- KOMPONEN NAVIGASI GAYA BUKU (BOOK TABS) ---
-const NavigationBar = () => (
-  <div className="flex justify-center mb-12 relative">
-    {/* Garisan halus melintang sebagai sandaran tab */}
-    <div className="absolute bottom-0 w-64 h-[1px] bg-stone-200"></div>
-    
-    <nav className="flex items-end gap-1">
-      {[
-        { id: 'invitation', label: 'Invitation' },
-        { id: 'rsvp', label: 'RSVP & Moments' },
-        { id: 'book', label: 'Guestbook' }
-      ].map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => setActivePage(tab.id as any)}
-          className={`
-            relative px-6 py-2 text-[10px] tracking-[0.2em] uppercase transition-all duration-300
-            ${activePage === tab.id 
-              ? 'bg-[#FDFBF6] border-t border-l border-r border-stone-300 text-stone-900 -translate-y-[1px] z-20' 
-              : 'bg-stone-100/50 border-t border-l border-r border-stone-200 text-stone-400 hover:text-stone-600 z-10'}
-            rounded-t-md
-          `}
-          style={{ 
-            boxShadow: activePage === tab.id ? '0 -2px 10px rgba(0,0,0,0.02)' : 'none' 
-          }}
-        >
-          {tab.label}
-          {/* Menutup garisan bawah bila tab aktif supaya nampak bercantum dengan helaian */}
-          {activePage === tab.id && (
-            <div className="absolute -bottom-[1px] left-0 w-full h-[2px] bg-[#FDFBF6] z-30"></div>
-          )}
-        </button>
-      ))}
-    </nav>
-  </div>
-);
-// 1. State untuk kategori aktif ('rsvp' atau 'moments')
-const [activeCategory, setActiveCategory] = useState('rsvp');
-const [activeCategory1, setActiveCategory1] = useState('form');
-const [currentPage, setCurrentPage] = useState(1);
-const [selectedItem, setSelectedItem] = useState<any>(null);
-const itemsPerPage = 4;
-
-// 2. Filter data mengikut kategori yang dipilih
-const filteredData = data.filter((item) => {
-  if (activeCategory === 'rsvp') {
-    return item.type === 'rsvp' && item.message;
-  } else {
-    return item.type === 'live'&& item.message;
-  }
-});
-
-// 3. Logik Pagination (sentiasa rujuk pada filteredData)
-const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
-const currentItems = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-// 4. Fungsi tukar kategori (Reset page ke 1)
-const handleCategoryChange = (cat:any) => {
-  setActiveCategory(cat);
-  setCurrentPage(1);
-};
-const handleCategoryChange1 = (cat:any) => {
-  setActiveCategory1(cat);
-  setRsvpSubTab(cat)
-};
-
-
-const pageVariants: Variants = {
-  initial: (direction: number) => ({
-    rotateY: direction > 0 ? 90 : -90,
-    opacity: 0,
-    transformOrigin: direction > 0 ? "left" : "right",
-  }),
-  animate: {
-    rotateY: 0,
-    opacity: 1,
-    transition: {
-      duration: 0.8,
-      // Gunakan "as const" untuk memberitahu TS ini adalah fixed bezier array
-      ease: [0.645, 0.045, 0.355, 1.0] as const, 
-    },
-  },
-  exit: (direction: number) => ({
-    rotateY: direction > 0 ? -90 : 90,
-    opacity: 0,
-    transformOrigin: direction > 0 ? "right" : "left",
-    transition: {
-      duration: 0.8,
-      ease: [0.645, 0.045, 0.355, 1.0] as const,
-    },
-  }),
-};
-// Tambah state direction
-const [direction, setDirection] = useState(0);
-
-// Gantikan cara panggil setActivePage dengan fungsi ini
-const paginate = (newPage: 'cover' | 'invitation' | 'rsvp' | 'book') => {
-  const pages = ['cover', 'invitation', 'rsvp', 'book'];
-  const currentIndex = pages.indexOf(activePage);
-  const nextIndex = pages.indexOf(newPage);
+const handleLocation = (type:any) => {
+  const address = "Puteri Palmera Glass Hall, Alor Setar, Kedah, Malaysia";
+  const encodedAddress = encodeURIComponent(address);
   
-  setDirection(nextIndex > currentIndex ? 1 : -1);
-  setActivePage(newPage);
+  if (type === 'google') {
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
+  } else {
+    window.open(`https://waze.com/ul?q=${encodedAddress}&navigate=yes`, '_blank');
+  }
+};
+const sectionRefs = {
+  info: useRef<HTMLDivElement>(null),
+  calendar: useRef<HTMLDivElement>(null),
+  location: useRef<HTMLDivElement>(null),
+  rsvp: useRef<HTMLDivElement>(null),
+  contact: useRef<HTMLDivElement>(null),
+};
+const scrollToSection = (key: keyof typeof sectionRefs) => {
+  sectionRefs[key].current?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  });
 };
   return (
-    <main className="min-h-screen bg-[#FDFBF6] p-4 md:p-8 font-serif text-stone-900">
-      <AnimatePresence mode="wait" custom={direction}>
-        <motion.div
-          key={activePage}
-          custom={direction}
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          style={{ backfaceVisibility: 'hidden' }}
-          className="w-full h-full"
+    <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
+      
+{/* --- 1. FRONT PAGE (SPLASH) --- */}
+{/* --- 1. FRONT PAGE (SPLASH) --- */}
+<AnimatePresence>
+  {isCoverOpen && (
+    <motion.div 
+      exit={{ opacity: 0, y: -100 }} 
+      transition={{ duration: 1.2, ease: "easeInOut" }}
+      className="fixed inset-0 z-[100] bg-[#FCFAF7] flex flex-col items-center justify-center p-4 overflow-hidden"
+    >
+      {/* --- CONTAINER KAD UTAMA --- */}
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
+        
+        {/* 1. GAMBAR UTAMA (Aimi & Zul) */}
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="relative z-10 w-full"
         >
-      {/* --- Komponen Snackbar --- */}
-      {snackbar.show && (
-        <div className={`fixed bottom-5 right-5 z-50 px-6 py-3 rounded-sm text-white text-sm shadow-lg ${snackbar.type === 'success' ? 'bg-emerald-700' : 'bg-red-700'}`}>
-          {snackbar.message}
-        </div>
-      )}
+          <img 
+            src="/image/1.png" 
+            alt="Main Invite"
+            className="w-full h-auto object-contain scale-80" 
+          />
+        </motion.div>
 
-      {/* Outer Border Frame */}
-      <div className="min-h-[95vh] border-[10px] border-double border-stone-300 p-6 rounded-3xl bg-[#FDFBF6]">
-        
-        {/* --- PAGE 1: MUKA DEPAN --- */}
-        {activePage === 'cover' && (
-          <div className="flex flex-col items-center justify-center min-h-[85vh] text-center animate-in fade-in duration-1000">
-            <p className="text-sm tracking-[0.3em] text-stone-500 uppercase mb-4">Wedding Invitation</p>
-            <h1 className="text-7xl md:text-8xl font-bold tracking-widest text-stone-900 mb-6">Guestbook</h1>
-            <p className="text-4xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
-            <button 
-              onClick={() => setActivePage('invitation')}
-              className="px-12 py-4 border-2 border-stone-900 text-stone-900 text-sm tracking-widest uppercase font-medium hover:bg-stone-900 hover:text-white transition-all duration-300 rounded-sm"
-            >
-              Open Invitation
-            </button>
-          </div>
-        )}
+        {/* --- ELEMEN DEKORASI (SCATTERED) --- */}
+        {/* Susunan Bunga, Reben & Bintang di sekeliling kad */}
 
-        {/* --- PAGE 2: INVITATION --- */}
-        {activePage === 'invitation' && (
-          <div className="animate-in fade-in duration-500">
-            <NavigationBar />
-            <header className="text-center mb-6">
+        {/* Imej 2: Contoh Reben Atas Kiri */}
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/2.png" className="absolute top-[10%] left-[-15%] w-32 z-20 rotate-[-15deg] w-50"
+        />
 
-            <h1 className="text-3xl md:text-4xl font-serif font-bold italic text-stone-800 tracking-widest">Invitation</h1>
-            <p className="text-xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
-              <p className="text-stone-600 mt-4">[Sila isi kandungan jemputan di sini]</p>
-              </header>
+        {/* Imej 3: Contoh Bunga Bawah Kiri */} 
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[50%] left-[-5%] w-28 z-20 w-40"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute top-[30%] right-[-5%] w-40 z-0 w-40"
+        />
 
-            </div>
-        )}
+        {/* Imej 4: Contoh Bintang Kanan Atas */}
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+  src="/image/4.png" 
+  className="absolute top-[10%] right-[-5%] w-40 z-0" // Guna w-40 (160px) atau w-64 (256px)
+/>
 
-        {/* --- PAGE 3: RSVP & MOMENTS --- */}
-        {activePage === 'rsvp' && (
-          <div className="animate-in fade-in duration-500">
-            <NavigationBar />
-            <header className="text-center mb-10">
-              {/* <h1 className="text-4xl font-bold tracking-widest text-stone-900 mb-2">RSVP & Moments</h1> */}
-              <h1 className="text-3xl md:text-4xl font-bold font-serif italic text-stone-800 tracking-widest">RSVP & Moments</h1>
-              <p className="text-xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
-              </header>
+        {/* Imej 5: Contoh Bunga Kanan Bawah */}
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/5.png" className="absolute bottom-[10%] right-[-10%] w-36 z-20 rotate-[10deg] w-40"
+        />
 
-            {/* Statistik */}
-             {/* Sub-Tab Switcher */}
-             <div className="flex justify-center gap-8 mb-12 border-b border-stone-100 pb-4">
-            <button 
-              onClick={() => handleCategoryChange1('form')}
-              className={`font-serif italic tracking-widest text-sm transition-all ${activeCategory1 === 'form' ? 'text-stone-800 border-b-2 border-stone-800' : 'text-stone-300 hover:text-stone-500'}`}
-            >
-              Wishes (RSVP)
-            </button>
-            <button 
-              onClick={() => handleCategoryChange1('moments')}
-              className={`font-serif italic tracking-widest text-sm transition-all ${activeCategory1 === 'moments' ? 'text-stone-800 border-b-2 border-stone-800' : 'text-stone-300 hover:text-stone-500'}`}
-            >
-              Moments
-            </button>
-          </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-10 max-w-lg mx-auto">
-              <div className="bg-white border border-stone-200 p-6 rounded-xl text-center shadow-sm">
-                <p className="text-xs tracking-[0.2em] uppercase text-stone-500 mb-2">Attend</p>
-                <p className="text-5xl font-bold text-stone-950">{countHadir}</p>
-              </div>
-              <div className="bg-white border border-stone-200 p-6 rounded-xl text-center shadow-sm">
-                <p className="text-xs tracking-[0.2em] uppercase text-stone-500 mb-2">Not Attend</p>
-                <p className="text-5xl font-bold text-stone-950">{countTidakHadir}</p>
-              </div>
-            </div>
-
-           
-           
-
-            {/* Kandungan Sub-Tab: Form RSVP */}
-            {rsvpSubTab === 'form' && (
-              <div className="max-w-4xl mx-auto mb-16 animate-in fade-in duration-300">
-                <form onSubmit={(e) => handleSubmit(e, 'rsvp')} className="border border-stone-300 p-8 rounded-sm bg-white shadow-sm space-y-6">
-                  <div className="border-b border-stone-300 pb-2">
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Name:</label>
-                      <input name="name" required className="w-full mt-1 outline-none text-lg" />
-                  </div>
-                  <div className="border-b border-stone-300 pb-2">
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Attendance:</label>
-                      <select name="attendance" className="w-full mt-1 outline-none text-lg bg-transparent appearance-none">
-                      <option value="Hadir">Accepts with pleasure</option>
-                      <option value="Tidak Hadir">Declines with regret</option>
-                      </select>
-                  </div>
-                  <div className="border-b border-stone-300 pb-2">
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Message:</label>
-                      <input name="message" required className="w-full mt-1 outline-none text-lg" />
-                  </div>
-                  <div >
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Picture:</label>
-                  </div>
-                  <div className="border-2 border-dashed border-stone-300 p-6 text-center">
-                      <input type="file" name="image" accept="image/*" capture="environment"  className="text-sm" />
-                  </div>
-                  <button disabled={loading} className="w-full bg-stone-900 text-white py-4 text-sm tracking-widest uppercase font-medium hover:bg-stone-700 transition">
-                      {loading ? 'Processing...' : 'Submit RSVP'}
-                  </button>
-                </form>
-                <div className="mt-16 px-4 overflow-hidden"> {/* overflow-hidden untuk elak shadow kad terpotong buruk */}
-  <h3 className="text-2xl font-bold mb-8 text-center text-stone-900 tracking-tight">
-    Guest Responses
-  </h3>
-  
-  <Swiper
-    // --- KONFIGURASI ENDLESS & RESPONSIVE ---
-    loop={true} // Ini yang buat dia pusing tanpa henti
-    centeredSlides={true} // Kad aktif sentiasa kat tengah (bagus untuk mobile)
-    breakpoints={{
-      0: {
-        slidesPerView: 3, // Nampak sikit kad kiri & kanan
-        spaceBetween: 20,
-      },
-      640: {
-        slidesPerView: 2.5,
-        spaceBetween: 25,
-      },
-      1024: {
-        slidesPerView: 5,
-        spaceBetween: 15,
-      },
-    }}
-    autoplay={{
-      delay: 3000,
-      disableOnInteraction: false,
-      pauseOnMouseEnter: true, // Berhenti jap kalau orang hover/tahan guna jari
-    }}
-    modules={[Autoplay]} 
-    className="py-4" // Padding atas bawah supaya shadow tak kena cut
-  >
-    {data.filter(i => i.type === 'rsvp' && i.message).map((item, index) => (
-      <SwiperSlide key={`${item.id}-${index}`} className="h-auto">
-        
-        {/* --- KAD POLAROID --- */}
-        <div className="bg-white p-5 rounded-sm shadow-md border border-stone-100 h-[110px] w-[130px] flex flex-col justify-between transition-all duration-500">
-          
-          <div className="text-center">
-            {/* Nama Guest */}
-            <p className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-2 truncate">
-              {item.name}
-            </p>
-            
-            {/* Status Kehadiran - Dot Style */}
-            <div className="flex justify-center items-center gap-1.5 mb-3">
-              <span className={`w-1.5 h-1.5 rounded-full ${item.attendance === 'Hadir' ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-              <span className="text-[10px] font-medium text-stone-500 uppercase tracking-tighter">{item.attendance}</span>
-            </div>
-            
-            {/* Ucapan */}
-            <p className="text-xs sm:text-sm text-stone-700 italic leading-relaxed line-clamp-1">
-              "{item.message}"
-            </p>
-          </div>
-
-        </div>
-        
-      </SwiperSlide>
-    ))}
-  </Swiper>
-</div>
-              </div>
-            )}
-
-            {/* Kandungan Sub-Tab: Moments */}
-            {rsvpSubTab === 'moments' && (
-              <div className="max-w-2xl mx-auto mb-10 animate-in fade-in duration-300">
-                {/* <h3 className="text-2xl font-bold mb-6 text-center">Share Your Moment</h3> */}
-                <form onSubmit={(e) => handleSubmit(e, 'live')} className="border border-stone-300 p-8 rounded-sm bg-white shadow-sm space-y-6 mb-10">
-                  <div className="border-b border-stone-300 pb-2">
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Name:</label>
-                      <input name="name" required className="w-full mt-1 outline-none text-lg" />
-                  </div>
-                  <div >
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Share Your Moments on the wedding day:</label>
-                  </div>
-
-                  <div className="border-2 border-dashed border-stone-300 p-6 text-center">
-                      <input type="file" name="image" accept="image/*" capture="environment" required className="text-sm" />
-                  </div>
-                  <div className="border-b border-stone-300 pb-2">
-                      <label className="text-xs uppercase tracking-widest text-stone-500">Caption:</label>
-                      <input name="message" required className="w-full mt-1 outline-none text-lg" />
-                  </div>
-                  <button disabled={loading} className="w-full bg-stone-900 text-white py-4 text-sm tracking-widest uppercase font-medium hover:bg-stone-700 transition">
-                      {loading ? 'Uploading...' : 'Publish Moment'}
-                  </button>
-                </form>
-
-                {/* <div className="columns-2 md:columns-3 gap-4 space-y-4">
-                  {data.filter(i => i.type === 'live').map(item => (
-                    <div key={item.id} className="break-inside-avoid border border-stone-200 p-2 bg-white rounded-sm">
-                      {item.image_url && (
-                        <div className="relative w-full aspect-square overflow-hidden rounded-sm">
-                          <Image src={item.image_url} alt="Live" fill className="object-cover" />
-                        </div>
-                      )}
-                      <p className="font-bold text-xs text-stone-900 mt-2">{item.name}</p>
-                      <p className="text-xs text-stone-500">{item.message}</p>
-                    </div>
-                  ))}
-                </div> */}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* --- PAGE 4: GUESTBOOK --- */}
-        {activePage === 'book' && (
-          <div className="animate-in fade-in duration-500">
-          <NavigationBar />
-          
-          <header className="text-center mb-6">
-            <h1 className="text-3xl md:text-4xl font-serif font-bold italic text-stone-800 tracking-widest">Guestbook</h1>
-            <p className="text-xl md:text-5xl font-light italic text-stone-700 mb-12">Aimi<span className="font-serif not-italic text-stone-400">&</span>Zulhilmi</p>
-          </header>
-    
-          {/* --- TAB PEMBAHAGIAN (RSVP vs MOMENTS) --- */}
-          <div className="flex justify-center gap-8 mb-12 border-b border-stone-100 pb-4">
-            <button 
-              onClick={() => handleCategoryChange('rsvp')}
-              className={`font-serif italic tracking-widest text-sm transition-all ${activeCategory === 'rsvp' ? 'text-stone-800 border-b-2 border-stone-800' : 'text-stone-300 hover:text-stone-500'}`}
-            >
-              Wishes (RSVP)
-            </button>
-            <button 
-              onClick={() => handleCategoryChange('moments')}
-              className={`font-serif italic tracking-widest text-sm transition-all ${activeCategory === 'moments' ? 'text-stone-800 border-b-2 border-stone-800' : 'text-stone-300 hover:text-stone-500'}`}
-            >
-              Moments
-            </button>
-          </div>
-    
-          <p className="text-center text-stone-400 text-[10px] tracking-[0.3em] uppercase mb-10">
-            {activeCategory} — Page {currentPage} of {totalPages}
-          </p>
-    
-          {/* Grid Utama */}
-          <div className="flex-grow grid grid-cols-2 gap-x-4 gap-y-12 md:gap-x-12 md:gap-y-20 items-start">
-            {currentItems.map((item, index) => (
-              <div 
-                key={item.id} 
-                onClick={() => setSelectedItem(item)}
-                className={`flex flex-col items-center cursor-pointer group transition-all hover:scale-[1.02] ${index % 2 === 0 ? '-rotate-1' : 'rotate-1'}`}
-              >
-                            {item.image_url ? (
-              <>
-                <div className="relative bg-[#fdfdfb] p-2 pb-8 md:p-3 md:pb-14 shadow-lg border border-stone-200 w-full max-w-[160px] md:max-w-[260px]">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-10 md:w-16 h-6 bg-white/40 backdrop-blur-[2px] rotate-3 border border-white/10 z-10"></div>
-                  <div className="relative aspect-square overflow-hidden bg-stone-100">
-                    <Image src={item.image_url} alt={item.name} fill className="object-cover sepia-[0.1]" />
-                  </div>
-                </div>
-                <div className="max-w-[150px] md:max-w-[240px] mt-4 text-center">
-                <p className="font-handwriting text-base md:text-xl text-[#6b5d41] leading-tight text-center italic line-clamp-5 break-words overflow-hidden w-full px-2">
-  "{item.message}"
-</p>
-                </div>
-              </>
-            ) : (
-              <div className="relative w-full max-w-[160px] md:max-w-[260px] flex flex-col items-center border-t border-b border-stone-100 py-8 px-2">
-                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-stone-300"></div>
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-stone-300"></div>
-                <div className="w-full">
-                {/* line-clamp-5 untuk nota supaya boleh baca lebih sikit sebab ruang luas */}
-                <p className="font-handwriting text-base md:text-xl text-[#6b5d41] leading-tight text-center italic line-clamp-5 break-words overflow-hidden w-full px-2">
-  "{item.message}"
-</p>              </div>
-              </div>
-            )}
-                <p className="font-handwriting text-sm md:text-lg text-stone-400 mt-2">-{item.name || 'Guest'}-</p>
-              </div>
-            ))}
-          </div>
-    
-                {/* --- MODAL / POP-OUT (Sama Teks Melimpah) --- */}
-      {selectedItem && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in zoom-in duration-300"
-          onClick={() => setSelectedItem(null)} // Tutup bila klik luar
-        >
-          {/* Tambah h-auto supaya kotak memanjang ke bawah, bukan ke tepi */}
-          <div 
-            className="bg-[#fdfdfb] max-w-[90%] md:max-w-lg w-full h-auto max-h-[90vh] overflow-y-auto scrollbar-hide p-6 md:p-10 shadow-2xl relative border border-stone-200"
-            onClick={(e) => e.stopPropagation()} // Halang tutup bila klik dalam kotak
+        {/* Imej 6: Contoh Bintang Tengah Atas */}
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute top-[0%] left-[40%] w-12 z-0  w-40"
+        /> 
+               <motion.img 
+                 animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute top-[70%] left-[30%] w-32 z-20 rotate-[-15deg]  w-40"
+        />
+ <motion.img 
+   animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/7.png" className="absolute top-[70%] left-[-5%] w-32 z-20 rotate-[-15deg] w-40 "
+        />
+        {/* --- BUTANG ENTER --- */}
+        <div className="absolute bottom-[5%] z-30">
+          <button 
+            className="px-12 py-4 rounded-full bg-[#989F81] text-white font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-[#868d6f] active:scale-95 transition-all" 
+            onClick={() => setIsCoverOpen(false)}
           >
-            <button 
-              className="absolute top-1 right-2 text-stone-400 hover:text-stone-800 text-xl"
-              onClick={() => setSelectedItem(null)}
-            >✕</button>
-
-            {selectedItem.image_url ? (
-              <div>
-              <div className="relative aspect-square w-full mb-8 shadow-md border-4 border-white">
-                <Image src={selectedItem.image_url} alt={selectedItem.name} fill className="object-cover" />
-              </div>
-              <div className="text-center">
-              {/* Gunakan class break-words dan w-full untuk memaksa teks putus dan sambung di baris baru */}
-              <p className="font-handwriting text-sm md:text-xl text-[#5a4d31] leading-relaxed mb-6 w-full break-words px-2">
-                "{selectedItem.message}"
-              </p>
-              <div className="w-12 h-px bg-stone-200 mx-auto mb-4"></div>
-              <p className="font-handwriting text-xl md:text-2xl text-stone-500 italic">
-                -{selectedItem.name}-
-              </p>
-              <p className="text-[10px] text-stone-300 uppercase tracking-[0.2em] mt-2">
-                {new Date(selectedItem.created_at).toLocaleDateString()}
-              </p>
-            </div></div>
-              
-            ):(
-              <div className="text-center">
-              {/* Gunakan class break-words dan w-full untuk memaksa teks putus dan sambung di baris baru */}
-              <p className="font-handwriting text-2xl md:text-4xl text-[#5a4d31] leading-relaxed mb-6 w-full break-words px-2">
-                "{selectedItem.message}"
-              </p>
-              <div className="w-12 h-px bg-stone-200 mx-auto mb-4"></div>
-              <p className="font-handwriting text-xl md:text-2xl text-stone-500 italic">
-                -{selectedItem.name}-
-              </p>
-              <p className="text-[10px] text-stone-300 uppercase tracking-[0.2em] mt-2">
-                {new Date(selectedItem.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            )}
-
-            
-          </div>
+            Enter Experience
+          </button>
         </div>
-      )}
+      </div>          
+    </motion.div>
+  )}
+</AnimatePresence>
+
+      <main className="max-w-md mx-auto min-h-screen flex flex-col px-8 pt-16 pb-40">
+        
+        {/* --- TAB 1: INFO --- */}
+        {activeTab === 'info' && (
+  /* Container ini akan ambil alih seluruh ruang skrin */
+  <div className="fixed inset-0 top-0 left-0 w-full h-full overflow-y-auto no-scrollbar snap-y snap-mandatory bg-[#FCFAF7] z-50">
     
-          {/* Navigation Buttons */}
-          <div className="mt-16 flex justify-between items-center max-w-xs mx-auto w-full pt-6 border-t border-stone-100">
-             <button onClick={() => { setCurrentPage(p => Math.max(p-1, 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={currentPage === 1} className="p-2 text-stone-300 hover:text-stone-800 disabled:opacity-10 text-xl">←</button>
-             <span className="font-serif italic text-stone-400 text-sm">{currentPage} / {totalPages}</span>
-             <button onClick={() => { setCurrentPage(p => Math.min(p+1, totalPages)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={currentPage === totalPages} className="p-2 text-stone-300 hover:text-stone-800 disabled:opacity-10 text-xl">→</button>
-          </div>
+    {/* --- SECTION Burung --- */}
+    <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+      <div className="flex flex-col items-center w-full max-w-[400px]">
+        {/* Gambar 8, 9, 10 anda di sini */}
+<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+
+           <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="relative z-10 w-full"
+        >
+          <img 
+            src="/image/8.png" 
+            alt="Main Invite"
+            className="w-full h-auto object-contain scale-100" 
+          />
+        </motion.div>
+          </motion.div>
+
+                    <motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="relative z-10 w-full mt-[-30px]" // Naikkan nilai dalam kurungan untuk lagi tinggi
+>
+  <img 
+    src="/image/9.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-100" 
+  />
+</motion.div>
+
+<motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="relative z-10 w-full mt-[-30px]" // Naikkan nilai dalam kurungan untuk lagi tinggi
+>
+  <img 
+    src="/image/10.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-60" 
+  />
+</motion.div>
+
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[15%] left-[10%] w-28 z-20 w-40"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-40"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[85%] left-[65%] w-28 z-20 w-30"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/11.png" className="absolute bottom-[15%] left-[70%] w-28 z-20 w-40"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[10%] left-[50%] w-28 z-20 w-10"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 w-6"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-1"
+        />      
         </div>
+      {/* Dekorasi tetap berada di dalam section supaya dia fade out sekali */}
+    </motion.section>
+
+    {/* --- SECTION Pintu --- */}
+    <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+      <div className="flex flex-col items-center w-full max-w-[400px]">
+<motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="relative z-10 w-full mt-[-190px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+>
+  <img 
+    src="/image/34.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-100" 
+  />
+</motion.div>
+
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[70%] left-[80%] w-28 z-20 w-40"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-40"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/4.png" className="absolute bottom-[10%] left-[60%] w-28 z-20 w-40"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/7.png" className="absolute bottom-[10%] left-[5%] w-28 z-20 w-50"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/16.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-30"
+        />
+        <motion.img 
+          src="/image/17.png" className="absolute bottom-[17%] left-[30%] w-28 z-20 w-60"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[25%] left-[25%] w-28 z-20 w-4"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[20%] left-[60%] w-28 z-20 w-1"
+        />
+             </div>
+    </motion.section>
+        {/* --- SECTION Sofa --- */}
+    <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+            <div className="flex flex-col items-center w-full max-w-[400px]">
+<motion.img 
+          src="/image/47.png" className="absolute bottom-[70%] left-[23%] w-28 z-20 w-90"
+        />
+              <motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="relative z-10 w-full mt-[-50px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+>
+  <img 
+    src="/image/35.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-140" 
+  />
+  <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/16.png" className="absolute bottom-[120%] left-[45%] w-28 z-20 w-[100px]"
+        />
+          <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[110%] left-[5%] w-28 z-20 w-[100px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[80%] left-[100%] w-28 z-20 w-[100px]"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[60%] left-[10%] w-28 z-20 w-[100px]"
+        />
+        <motion.img 
+          src="/image/48.png" className="absolute bottom-[65%] left-[60%] w-28 z-20 w-[200px]"
+        />
+                <motion.img 
+          src="/image/49.png" className="absolute bottom-[70%] left-[15%] w-28 z-20 w-[190px]"
+        />
+</motion.div>
+  </div>
+
+    </motion.section>
+            {/* --- SECTION Date and Location --- */}
+ <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+            <div className="flex flex-col items-center w-full max-w-[400px]">  
+               <motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="relative z-10 w-full mt-[-400px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+>
+  <img 
+    src="/image/37.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-50" 
+  />
+</motion.div>
+<motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="relative z-10 w-full mt-[-50px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+>
+  <img 
+    src="/image/43.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-100" 
+  />
+</motion.div>
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/36.png" className="absolute bottom-[80%] left-[10%] w-28 z-20 w-[150px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/42.png" className="absolute bottom-[51%] left-[60%] w-28 z-20 w-[100px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/39.png" className="absolute bottom-[40%] left-[35%] w-28 z-20 w-[150px]"
+        />
+                 <motion.img 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/40.png" className="absolute bottom-[30%] left-[44%] w-28 z-20 w-[70px]"
+          whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
+  onClick={() => setIsOpen(true)}
+        />
+        <motion.img 
+  // transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/41.png" 
+          // className="absolute bottom-[25%] left-[23%] w-28 z-20 w-[300px]"
+            className="absolute bottom-[25%] left-[23%] w-28 z-20 w-[300px] cursor-pointer"
+  whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
+  onClick={() => setIsOpen(true)}
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[150px]"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[80%] left-[70%] w-28 z-20 w-[150px]"
+        />
+                <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[30%] left-[80%] w-28 z-20 w-[130px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/38.png" className="absolute bottom-[70%] left-[80%] w-28 z-20 w-[100px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/7.png" className="absolute bottom-[10%] left-[10%] w-28 z-20 w-[130px]"
+        />
+                 <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[10%] left-[75%] w-28 z-20 w-[130px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[90%] left-[1%] w-28 z-20 w-[50px]"
+        />
+<motion.img 
+  src="/image/44.png" 
+  className="absolute bottom-[17%] left-[33%] z-20 w-[200px] cursor-pointer"
+  whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
+  onClick={() => setIsOpen(true)}
+/>
+            </div>
+
+    </motion.section>
+                        {/* --- SECTION RSVP --- */}
+    <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    ></motion.section>
+                {/* --- SECTION Contact --- */}
+
+<motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+      <div className="flex flex-col items-center w-full max-w-[400px]">
+<motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="relative z-10 w-full mt-[300px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+>
+  <img 
+    src="/image/21.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-100" 
+  />
+</motion.div>
+
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[60%] left-[70%] w-28 z-20 w-40"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[83%] left-[65%] w-28 z-20 w-10"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-20"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/18.png" className="absolute bottom-[68%] left-[25%] w-28 z-20 w-60"
+        />
+        <motion.img 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/19.png" className="absolute bottom-[68%] left-[30%] w-28 z-20 w-80"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/20.png" className="absolute bottom-[60%] left-[20%] w-28 z-20 w-[50px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/20.png" className="absolute bottom-[40%] left-[80%] w-28 z-20 w-[50px]"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/20.png" className="absolute bottom-[90%] left-[25%] w-28 z-20 w-[50px]"
+        />
+             <motion.img 
+          src="/image/46.png" className="absolute bottom-[45%] left-[10%] w-28 z-20 w-[400px]"
+        />
+             </div>
+             
+    </motion.section>
+                {/* --- SECTION Best Regards --- */}
+<motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+
+ <motion.img 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/30.png" className="absolute bottom-[50%] left-[50%] w-28 z-20 w-[250px]"
+        />
+        <motion.img 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/32.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[200px]"
+        />
+         <motion.img 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/32.png" className="absolute bottom-[50%] left-[10%] w-28 z-20 w-[200px]"
+        />
+        <motion.img 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/31.png" className="absolute bottom-[70%] left-[50%] w-28 z-20 w-[250px]"
+        />
+ <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/29.png" className="absolute bottom-[27%] left-[45%] w-28 z-20 w-[250px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/45.png" className="absolute bottom-[20%] left-[53%] w-28 z-20 w-[184px]"
+        />
+        {/* <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/28.png" className="absolute bottom-[20%] left-[70%] w-28 z-20 w-[120px]"
+        /> */}
+         <motion.img 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/33.png" className="absolute bottom-[15%] left-[1%] w-28 z-20 w-[250px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute  bottom-[35%] left-[75%] w-28 z-20 w-[200px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[15%] left-[40%] w-28 z-20 w-[100px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[80%] left-[45%] w-28 z-20 w-[100px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[40%] left-[1%] w-28 z-20 w-[100px]"
+        />
+         <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[65%] left-[90%] w-28 z-20 w-[70px]"
+        />
+                <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/2.png" className="absolute bottom-[83%] left-[10%] w-28 z-20 w-[200px]"
+        />
+    </motion.section>
+
+  </div>
 )}
 
+        {/* --- TAB 2: RSVP & SNAP (ACTION) --- */}
+        {activeTab === 'action' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+            {/* Sub-tab Selector */}
+            <div className="flex bg-[#F3EFE9] p-1 rounded-full border border-[#D6C7B5]/20">
+              <button onClick={() => {setSubTabAction('rsvp'); setPreviewUrl(null);}} className={`flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${subTabAction === 'rsvp' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]'}`}>RSVP</button>
+              <button onClick={() => {setSubTabAction('live'); setPreviewUrl(null);}} className={`flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${subTabAction === 'live' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]'}`}>Live Snap</button>
+            </div>
+
+            {subTabAction === 'rsvp' ? (
+              <form onSubmit={(e) => handleSubmit(e, 'rsvp')} className="space-y-6 animate-in fade-in duration-500">
+                <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-[#D6C7B5]/30 relative shadow-sm">
+                  {previewUrl ? <Image src={previewUrl} alt="Preview" fill className="object-cover" /> : 
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-[#D6C7B5]">
+                    <input type="file" accept="image/*" onChange={(e) => {const f = e.target.files?.[0]; if(f){setCapturedFile(f); setPreviewUrl(URL.createObjectURL(f));}}} className="absolute inset-0 opacity-0 z-10" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest">Add a Photo</p>
+                  </div>}
+                </div>
+                <input name="name" required placeholder="YOUR NAME" className="w-full bg-transparent border-b border-[#D6C7B5]/40 py-3 text-[10px] font-bold outline-none uppercase tracking-widest" />
+                <select name="attendance" className="w-full bg-transparent border-b border-[#D6C7B5]/40 py-3 text-[10px] font-bold outline-none uppercase tracking-widest">
+                  <option value="Hadir">Will Attend</option>
+                  <option value="Tidak Hadir">Cannot Attend</option>
+                </select>
+                <textarea name="message" required placeholder="YOUR WISHES" className="w-full bg-transparent border-b border-[#D6C7B5]/40 py-3 text-[10px] font-bold outline-none uppercase tracking-widest h-20" />
+                <button disabled={loading} className="w-full py-4 bg-[#4A443F] text-white rounded-2xl text-[9px] font-bold uppercase tracking-widest">{loading ? 'Sending...' : 'Confirm RSVP'}</button>
+              </form>
+            ) : (
+<div className="space-y-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+    
+    {/* Viewfinder Area */}
+    <div className="relative aspect-[4/5] bg-white rounded-[2.5rem] overflow-hidden shadow-[0_30px_60px_-12px_rgba(214,199,181,0.3)] border border-white/60 group">
+      {previewUrl ? (
+        <Image src={previewUrl} alt="Live Capture" fill className="object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center p-10">
+          <div className="w-full h-full border border-[#D6C7B5]/20 rounded-[1.5rem] flex flex-col items-center justify-center relative">
+             <div className="w-4 h-4 border-t border-l border-[#D6C7B5]/40 absolute top-4 left-4" />
+             <div className="w-4 h-4 border-b border-r border-[#D6C7B5]/40 absolute bottom-4 right-4" />
+             <p className="text-[8px] uppercase tracking-[0.5em] text-[#D6C7B5]/40 animate-pulse">Waiting for Shot</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Aesthetic HUD */}
+      <div className="absolute top-6 left-8 text-[7px] font-bold tracking-widest text-black/20 uppercase mix-blend-difference">POV_MODE</div>
+      <div className="absolute bottom-6 right-8 text-[7px] font-bold tracking-widest text-black/20 uppercase mix-blend-difference">REC ●</div>
+    </div>
+
+    {!previewUrl ? (
+      /* Step 1: Capture Button */
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative">
+          <input 
+            type="file" 
+            accept="image/*" 
+            capture="environment" 
+            onChange={(e) => {
+              const f = e.target.files?.[0]; 
+              if(f){ setCapturedFile(f); setPreviewUrl(URL.createObjectURL(f)); }
+            }} 
+            className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+          />
+          <div className="w-24 h-24 rounded-full border border-[#D6C7B5] p-2 flex items-center justify-center transition-all active:scale-90 bg-white/50 backdrop-blur-sm">
+            <div className="w-full h-full bg-[#4A443F] rounded-full shadow-xl shadow-[#4A443F]/20" />
+          </div>
+        </div>
+        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#A39584]">Take a Live Photo</p>
       </div>
+    ) : (
+      /* Step 2: Form after Capture */
+      <motion.form 
+        initial={{ opacity: 0, y: 10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        onSubmit={(e) => handleSubmit(e, 'live')} 
+        className="space-y-6 text-left"
+      >
+        <div className="space-y-4">
+          <div className="group">
+            <label className="text-[8px] font-black uppercase tracking-widest text-[#D6C7B5] ml-1">Captured By</label>
+            <input 
+              name="name" 
+              required 
+              placeholder="ENTER YOUR NAME" 
+              className="w-full bg-transparent border-b border-[#D6C7B5]/40 py-3 text-[10px] font-bold outline-none focus:border-[#4A443F] uppercase tracking-widest transition-colors" 
+            />
+          </div>
+          
+          <div className="group">
+            <label className="text-[8px] font-black uppercase tracking-widest text-[#D6C7B5] ml-1">The Vibe / Caption</label>
+            <input 
+              name="message" 
+              required 
+              placeholder="E.G. BEAUTIFUL BRIDE!" 
+              className="w-full bg-transparent border-b border-[#D6C7B5]/40 py-3 text-[10px] font-bold outline-none focus:border-[#4A443F] uppercase tracking-widest transition-colors" 
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-4 pt-4">
+          <button 
+            type="button" 
+            onClick={() => { setPreviewUrl(null); setCapturedFile(null); }} 
+            className="flex-1 py-4 text-[9px] font-bold uppercase tracking-widest text-[#A39584] hover:text-[#4A443F]"
+          >
+            Retake
+          </button>
+          <button 
+            disabled={loading} 
+            className="flex-1 py-4 bg-[#4A443F] text-white rounded-2xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50"
+          >
+            {loading ? 'Processing...' : 'Post to Moments'}
+          </button>
+        </div>
+      </motion.form>
+    )}
+  </div>
+            )}
+          </motion.div>
+        )}
+
+{activeTab === 'rolls' && (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 -mx-4">
+    {/* Sub-tab Selector IG Style */}
+                <div className="flex bg-[#F3EFE9] p-1 rounded-full border border-[#D6C7B5]/20">
+              <button onClick={() => setSubTabRolls('wishes')} className={`flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${subTabRolls === 'wishes' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]'}`}>Wishes</button>
+              <button onClick={() => setSubTabRolls('moments')} className={`flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${subTabRolls === 'moments' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]'}`}>Moments</button>
+            </div>
+{/* Instagram 3-Column Grid with Hover Effect */}
+<div className="grid grid-cols-3 gap-[2px] bg-white border-t border-[#D6C7B5]/10">
+  {data.filter(item => item.type === (subTabRolls === 'wishes' ? 'rsvp' : 'live')).map((item) => (
+    <motion.div 
+      key={item.id} 
+      className="relative aspect-square bg-[#F3EFE9] overflow-hidden cursor-pointer group"
+      onClick={() => setSelectedItem(item)}
+    >
+      {/* Image */}
+      {item.image_url && (
+        <Image 
+          src={item.image_url} 
+          alt="Gallery" 
+          fill 
+          className="object-cover transition-transform duration-700 group-hover:scale-110" 
+        />
+      )}
+
+      {/* Hover Overlay (Desktop) / Info Preview */}
+      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-2 text-center backdrop-blur-[2px]">
+        <p className="text-[8px] font-black text-white uppercase tracking-widest truncate w-full">{item.name}</p>
+        <p className="text-[7px] text-white/80 italic line-clamp-2 mt-1 px-1 leading-tight">"{item.message}"</p>
+      </div>
+    </motion.div>
+  ))}
+</div>
+
+    {/* Bottom Spacer for Nav */}
+    <div className="h-20" />
+  </motion.div>
+)}
+
+        {/* --- GLOBAL NAVIGATION --- */}
+        <nav className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center p-2 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-50">
+          {[
+            { id: 'info', label: 'Info' },
+            { id: 'action', label: 'Snap' },
+            { id: 'rolls', label: 'Rolls' }
+          ].map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === tab.id ? 'bg-[#4A443F] text-white shadow-xl' : 'text-[#A39584]'}`}>{tab.label}</button>
+          ))}
+        </nav>
+      </main>
+      {/* --- POLAROID MODAL --- */}
+<AnimatePresence>
+  {selectedItem && (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[110] bg-[#FCFAF7]/95 backdrop-blur-md flex items-center justify-center p-6"
+      onClick={() => setSelectedItem(null)}
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20, rotate: -2 }}
+        animate={{ scale: 1, y: 0, rotate: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white p-4 pb-12 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-[#F3EFE9] w-full max-w-xs aspect-[4/5] flex flex-col"
+      >
+        {/* Photo Area */}
+        <div className="relative flex-grow bg-[#F3EFE9] overflow-hidden shadow-inner border border-black/5">
+          {selectedItem.image_url && (
+            <Image 
+              src={selectedItem.image_url} 
+              alt="Polaroid" 
+              fill 
+              className="object-cover"
+            />
+          )}
+          {/* Subtle Film Grain Texture Over Image */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
+        </div>
+
+        {/* Polaroid Bottom Label */}
+        <div className="pt-6 px-1 text-center space-y-2">
+          <p className="text-xs font-serif italic text-[#4A443F] leading-relaxed">
+            "{selectedItem.message}"
+          </p>
+          <div className="w-4 h-[1px] bg-[#D6C7B5] mx-auto opacity-50" />
+          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#A39584]">
+            {selectedItem.name} — 04.04
+          </p>
+        </div>
       </motion.div>
-      </AnimatePresence>
-    </main>
+    </motion.div>
+  )}
+</AnimatePresence>
+{isOpen && (
+  <div 
+    // Klik luar untuk tutup
+    onClick={() => setIsOpen(false)} 
+    // Opacity yang diperbetulkan (bg-black/10)
+    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
+  >
+    {/* Box Modal: Copy sebijik style Nav kau */}
+    <div 
+      onClick={(e) => e.stopPropagation()} 
+className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"    >
+      {/* Tajuk: Ikut style text 'Inactive' kau tapi center */}
+      <h3 className="text-[#A39584] text-[10px] font-black uppercase tracking-[0.2em] mb-8 text-center">
+        Pilih Navigasi
+      </h3>
+      
+      <div className="flex flex-col gap-3">
+        {/* Button: Copy sebijik style 'Active' tab kau */}
+        <button 
+          onClick={() => handleLocation('google')}
+          className="w-full px-8 py-3.5 bg-[#4A443F] text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all duration-500"
+        >
+          Google Maps
+        </button>
+
+        <button 
+          onClick={() => handleLocation('waze')}
+          className="w-full px-8 py-3.5 bg-[#4A443F] text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all duration-500"
+        >
+          Waze
+        </button>
+
+        
+      </div>
+    </div>
+  </div>
+)}
+    </div>
   );
 }
