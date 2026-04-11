@@ -300,7 +300,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
       className="fixed inset-0 z-[100] bg-[#FCFAF7] flex flex-col items-center justify-center p-4 overflow-hidden"
     >
       {/* --- CONTAINER KAD UTAMA --- */}
-      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
+      <div className="relative w-full max-w-[min(450px,calc(100vw-2rem))] aspect-[9/16] flex flex-col items-center justify-center">
         
         {/* 1. GAMBAR UTAMA (Aimi & Zul) */}
         <motion.div 
@@ -323,7 +323,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/2.png" className="absolute top-[10%] left-[-15%] w-32 z-20 rotate-[-15deg] w-50"
+          src="/image/2.png" className="absolute top-[10%] left-[-15%] w-32 z-20 rotate-[-15deg] hidden sm:block"
         />
 
         {/* Imej 3: Contoh Bunga Bawah Kiri */} 
@@ -383,12 +383,12 @@ const addToCalendar = (type: 'google' | 'apple') => {
   )}
 </AnimatePresence>
 
-      <main className="max-w-md mx-auto min-h-screen flex flex-col px-8 pt-16 pb-40">
+      <main className="w-full max-w-[min(780px,100%)] mx-auto min-h-screen flex flex-col px-4 sm:px-8 pt-16 pb-24">
         
         {/* --- TAB 1: INFO --- */}
 <div 
   ref={scrollContainerRef}
-  className="fixed inset-0 w-full h-full overflow-y-auto no-scrollbar snap-y snap-mandatory bg-[#FCFAF7] z-40 pb-20"
+  className="fixed inset-0 w-full h-full overflow-x-hidden overflow-y-auto no-scrollbar snap-y snap-mandatory bg-[#FCFAF7] z-40 pb-20"
 >  
     {/* --- SECTION Burung --- */}
     <motion.section 
@@ -399,7 +399,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="flex flex-col items-center w-full max-w-[400px]">
+      <div className="flex flex-col items-center w-full max-w-[min(420px,100%)]">
         {/* Gambar 8, 9, 10 anda di sini */}
 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
 
@@ -471,12 +471,12 @@ const addToCalendar = (type: 'google' | 'apple') => {
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 w-6"
+          src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 hidden sm:block"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-1"
+          src="/image/12.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 hidden sm:block"
         />      
         </div>
       {/* Dekorasi tetap berada di dalam section supaya dia fade out sekali */}
@@ -490,7 +490,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="flex flex-col items-center w-full max-w-[400px]">
+      <div className="flex flex-col items-center w-full max-w-[min(420px,100%)]">
 <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
@@ -522,7 +522,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/7.png" className="absolute bottom-[10%] left-[5%] w-28 z-20 w-50"
+          src="/image/7.png" className="absolute bottom-[10%] left-[5%] w-28 z-20 hidden sm:block"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -535,12 +535,12 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[25%] left-[25%] w-28 z-20 w-4"
+          src="/image/3.png" className="absolute bottom-[25%] left-[25%] w-28 z-20 hidden sm:block"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[20%] left-[60%] w-28 z-20 w-1"
+          src="/image/6.png" className="absolute bottom-[20%] left-[60%] w-28 z-20 hidden sm:block"
         />
              </div>
     </motion.section>
@@ -552,9 +552,9 @@ const addToCalendar = (type: 'google' | 'apple') => {
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-            <div className="flex flex-col items-center w-full max-w-[400px]">
+            <div className="flex flex-col items-center w-full max-w-[min(420px,100%)]">
 <motion.img 
-          src="/image/47.png" className="absolute bottom-[70%] left-[23%] w-28 z-20 w-90"
+          src="/image/47.png" className="absolute bottom-[70%] left-[23%] w-20 sm:w-28 z-20"
         />
               <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
@@ -580,7 +580,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[80%] left-[100%] w-28 z-20 w-[100px]"
+          src="/image/3.png" className="absolute bottom-[80%] left-[100%] w-[100px] z-20 hidden sm:block"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -606,7 +606,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-            <div className="flex flex-col items-center w-full max-w-[400px]">  
+            <div className="flex flex-col items-center w-full max-w-[min(420px,100%)]">  
                <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
@@ -725,7 +725,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
   <motion.div 
     initial={{ opacity: 0, y: 20 }} 
     whileInView={{ opacity: 1, y: 0 }}
-    className="w-full max-w-md space-y-10"
+    className="w-full max-w-[min(720px,100%)] space-y-10"
   >
     {/* Sub-tab Selector - More Modern & Rounded */}
     <div className="flex bg-[#F3EFE9] p-1 rounded-full border border-[#D6C7B5]/20 shadow-inner">
@@ -996,7 +996,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="flex flex-col items-center w-full max-w-[400px]">
+      <div className="flex flex-col items-center w-full max-w-[min(420px,100%)]">
 <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
@@ -1149,7 +1149,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
   <motion.div 
     initial={{ opacity: 0, y: 20 }} 
     whileInView={{ opacity: 1, y: 0 }}
-    className="w-full max-w-md space-y-8"
+    className="w-full max-w-[min(720px,100%)] space-y-8"
   >
 
     {/* Sub-tab Selector IG Style */}
@@ -1198,7 +1198,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
   key="wishes-canvas"
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
-  className="columns-2 gap-4 pt-4 space-y-4 px-2"
+  className="columns-1 sm:columns-2 gap-4 pt-4 space-y-4 px-2"
 >
   {data.filter(item => item.type === 'rsvp').map((item, index) => (
    <motion.div
@@ -1263,7 +1263,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
-            className="grid grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4"
           >
             {data.filter(item => item.type === 'live').length > 0 ? (
               data.filter(item => item.type === 'live').map((item) => (
@@ -1308,7 +1308,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
         {/* --- GLOBAL NAVIGATION --- */}
 {!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&& (
   <>
-        <nav className="fixed bottom-15 left-1/2 -translate-x-1/2 flex items-center p-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-200 pointer-events-auto">
+        <nav className="fixed bottom-[3.75rem] left-1/2 -translate-x-1/2 flex flex-nowrap items-center gap-2 overflow-x-auto max-w-[calc(100vw-2rem)] px-2 py-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-200 pointer-events-auto no-scrollbar">
   <button
   onClick={handleRestart}
   className="ml-1 p-2.5 rounded-full text-[#A39584] hover:text-[#4A443F] transition-all group"
