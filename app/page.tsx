@@ -26,9 +26,9 @@ const [subTabAction, setSubTabAction] = useState<'rsvp' | 'live'>('rsvp');
 const [selectedItem, setSelectedItem] = useState<any | null>(null);
 const scrollContainerRef = useRef<HTMLDivElement>(null);
 const [isManualScroll, setIsManualScroll] = useState(false);
-const [attendance, setAttendance] = useState('Hadir');
-const [paxCount, setPaxCount] = useState(1);
-const [selectedWish, setSelectedWish] = useState(null);
+const [attendance, setAttendance] = useState<string>('Hadir');
+const [paxCount, setPaxCount] = useState<number>(1);
+const [selectedWish, setSelectedWish] = useState<{ id: number | string; created_at?: string; message?: string; name?: string } | null>(null);
 const [isOpen3, setIsOpen3] = useState(false);
 const [showLockNote, setShowLockNote] = useState(false);
 const options = ["Hadir", "Tidak Hadir"];
@@ -137,7 +137,7 @@ showToast("BERJAYA DIHANTAR");
     setCapturedFile(null);
     
     // Alihkan user ke tab result
-    setActiveTab('rolls');
+    // setActiveTab('rolls');
     setSubTabRolls(type === 'rsvp' ? 'wishes' : 'moments');
 
   } catch (err) { 
@@ -181,7 +181,7 @@ const scrollToSection = (key: keyof typeof sectionRefs) => {
   setIsManualScroll(true);
 
   // ✅ highlight terus (no delay)
-  setActiveTab(key);
+  // setActiveTab(key);
 
   sectionRefs[key].current?.scrollIntoView({
     behavior: 'smooth',
@@ -206,7 +206,13 @@ const handleRestart = () => {
     behavior: 'instant', // tukar ke instant (lagi clean)
   });
 };
-const Snackbar = ({ message, type, isVisible }) => (
+interface SnackbarProps {
+  message: string;
+  type: 'success' | 'error';
+  isVisible: boolean;
+}
+
+const Snackbar: React.FC<SnackbarProps> = ({ message, type, isVisible }) => (
   <AnimatePresence>
     {isVisible && (
       <motion.div
@@ -229,13 +235,13 @@ const Snackbar = ({ message, type, isVisible }) => (
     )}
   </AnimatePresence>
 );
-   const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'success' });
+   const [snackbar, setSnackbar] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
 // 2. Function untuk trigger snackbar
-const showToast = (msg, type = 'success') => {
+const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
   setSnackbar({ show: true, message: msg, type });
-  setTimeout(() => setSnackbar({ ...snackbar, show: false }), 2000);
-}; 
+  setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
+};
 // Target date: 8 Ogos 2026
 const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
@@ -243,13 +249,13 @@ const isLocked = new Date() < targetDate;
 
    const [showCalendarModal, setShowCalendarModal] = useState(false);
 
-const addToCalendar = (type) => {
+const addToCalendar = (type: 'google' | 'apple') => {
   const event = {
     title: "Majlis Perkahwinan Aimi & Zulhilmi",
     description: "Setiap detik yang berlalu terasa lebih indah apabila kita menantinya bersama. Di bawah langit yang sama, kami ingin membina sebuah mahligai impian. Sudilah kiranya hadir, untuk berkongsi tawa dan merestui langkah kami dalam perjalanan yang baru bermula ini.",
     location: "Puteri Palmera Glass Hall, Alor Setar, Kedah, Malaysia",
-startTime: "2026-08-08T11:00:00", 
-  endTime: "2026-08-08T16:00:00"
+    startTime: "2026-08-08T11:00:00", 
+    endTime: "2026-08-08T16:00:00"
   };
 
   if (type === 'google') {
@@ -1382,7 +1388,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
   
   {/* 1. Quote/Message: Gunakan font serif yang lebih lembut & saiz yang sedikit besar */}
   <p className="text-[13px] font-serif italic text-[#3d3834] leading-[1.6] mb-4 px-2">
-    "{selectedItem.message}"
+    "{selectedItem.message||"-"}"
   </p>
 
   {/* 2. Divider: Gunakan dot kecil atau garis yang lebih halus */}
@@ -1439,7 +1445,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
         {/* Header: Date */}
         <div className="mb-6">
           <span className="text-[8px] font-black text-[#A39584] uppercase tracking-[0.4em]">
-            {new Date(selectedWish.created_at).toLocaleDateString('en-GB', { 
+            {new Date(selectedWish.created_at ?? Date.now()).toLocaleDateString('en-GB', { 
               day: '2-digit', month: 'long' , year: 'numeric'
             })}
           </span>
@@ -1448,7 +1454,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
         {/* Message: Dengan Scrollbar (Teks Coklat Gelap) */}
         <div className="w-full max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
           <p className="text-[15px] text-[#4A443F] leading-relaxed font-serif italic break-words">
-            "{selectedWish.message}"
+            "{selectedWish.message||"-"}"
           </p>
         </div>
 
