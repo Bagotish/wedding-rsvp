@@ -26,16 +26,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-/* Pastikan body tidak ada scrollbar langsung */
-body {
-  overflow: hidden;
-}
-
-/* Guna class ni untuk container info anda */
+/* Hilangkan scrollbar untuk Chrome, Safari dan Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Hilangkan scrollbar untuk IE, Edge dan Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
