@@ -37,7 +37,7 @@ export default function JooxPlayer({ shouldPlay }: JooxPlayerProps) {
   }, [isPlaying]);
   return (
     <div className="fixed top-8 left-8 z-[100] flex items-center h-[44px]">
-      {/* <audio ref={audioRef} src="/song.mp3" loop /> */}
+      <audio ref={audioRef} src="/song.mp3" loop />
 
       <motion.div
         layout
