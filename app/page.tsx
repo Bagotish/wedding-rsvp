@@ -1086,6 +1086,8 @@ const addToCalendar = (type: 'google' | 'apple') => {
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
+            <div className="flex flex-col items-center w-full max-w-[400px]">
+
  <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
@@ -1095,7 +1097,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
   <img 
     src="/image/58.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-100 " 
+    className="w-full h-auto object-contain scale-120" 
   />
 </motion.div>
  {/* <motion.img 
@@ -1158,7 +1160,8 @@ const addToCalendar = (type: 'google' | 'apple') => {
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[65%] left-[90%] w-28 z-20 w-[70px]"
         />
-                
+                             </div>
+
     </motion.section>
                             {/* --- SECTION Wishes --- */}
    {/* --- SECTION Wishes & Moments --- */}
