@@ -1447,7 +1447,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
     {/* Box Modal: Style disesuaikan */}
     <div 
       onClick={(e) => e.stopPropagation()}
-      className="relative w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)] text-center flex flex-col items-center"
+      className="relative w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/100 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)] text-center flex flex-col items-center"
     >
       {/* Header: Date (Style 'Inactive' kecil) */}
       <div className="mb-8">
@@ -1597,7 +1597,7 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
     {/* Box Modal: Glassmorphism container */}
     <div 
       onClick={(e) => e.stopPropagation()} 
-      className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"
+      className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/60 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"
     >
       {/* Tajuk */}
       <h3 className="text-[#A39584] text-[10px] font-black uppercase tracking-[0.2em] mb-8 text-center">
