@@ -395,7 +395,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
     {/* --- SECTION Burung --- */}
     <motion.section 
       ref={sectionRefs.info}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
@@ -486,7 +486,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
 
     {/* --- SECTION Pintu --- */}
     <motion.section 
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
@@ -548,7 +548,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
     </motion.section>
         {/* --- SECTION Sofa --- */}
     <motion.section 
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
@@ -602,7 +602,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
             {/* --- SECTION Date and Location --- */}
  <motion.section 
       ref={sectionRefs.calendar}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
@@ -719,7 +719,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
 {/* --- SECTION RSVP --- */}
 <motion.section 
   ref={sectionRefs.rsvp}
-  className="relative min-h-screen w-full flex flex-col items-center snap-start px-6 pt-24 pb-32 bg-[#FBF9F7]"
+  className="relative min-h-screen w-full flex flex-col items-center snap-start px-6 pt-24 pb-32 bg-[#FBF9F7] overflow-x-hidden"
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
   viewport={{ amount: 0.3 }}
@@ -993,7 +993,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
 
 <motion.section 
       ref={sectionRefs.contact}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
@@ -1080,7 +1080,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
                 {/* --- SECTION Best Regards --- */}
 <motion.section 
   ref={sectionRefs.wishes}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
@@ -1163,7 +1163,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
                             {/* --- SECTION Wishes --- */}
    {/* --- SECTION Wishes & Moments --- */}
 <motion.section 
-  className="relative min-h-screen w-full flex flex-col items-center snap-start px-4 pt-24 pb-32"
+  className="relative min-h-screen w-full flex flex-col items-center snap-start px-4 pt-24 pb-32 overflow-x-hidden"
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
   viewport={{ amount: 0.3 }}
