@@ -448,37 +448,37 @@ const addToCalendar = (type: 'google' | 'apple') => {
 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[15%] left-[10%] w-28 z-20 w-40"
+          src="/image/3.png" className="absolute bottom-[15%] left-[10%] w-28 z-20 w-[100px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-40"
+          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[85%] left-[65%] w-28 z-20 w-30"
+          src="/image/3.png" className="absolute bottom-[85%] left-[65%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/11.png" className="absolute bottom-[15%] left-[70%] w-28 z-20 w-40"
+          src="/image/11.png" className="absolute bottom-[15%] left-[70%] w-28 z-20 w-[80px]"
         />
-        <motion.img 
+        {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[10%] left-[50%] w-28 z-20 w-10"
-        />
-         <motion.img 
+          src="/image/12.png" className="absolute bottom-[10%] left-[50%] w-28 z-20 w-5"
+        /> */}
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 w-6"
-        />
+        /> */}
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-1"
+          src="/image/12.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-[70px]"
         />      
         </div>
       {/* Dekorasi tetap berada di dalam section supaya dia fade out sekali */}
@@ -509,27 +509,27 @@ const addToCalendar = (type: 'google' | 'apple') => {
 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[70%] left-[80%] w-28 z-20 w-40"
+          src="/image/3.png" className="absolute bottom-[70%] left-[80%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-40"
+          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-20"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/4.png" className="absolute bottom-[10%] left-[60%] w-28 z-20 w-40"
+          src="/image/4.png" className="absolute bottom-[10%] left-[60%] w-28 z-20 w-20"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/7.png" className="absolute bottom-[10%] left-[5%] w-28 z-20 w-50"
+          src="/image/7.png" className="absolute bottom-[10%] left-[5%] w-28 z-20 w-30"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/16.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-30"
+          src="/image/16.png" className="absolute bottom-[88%] left-[40%] w-28 z-20 w-30"
         />
         {/* <motion.img 
           src="/image/17.png" className="absolute bottom-[17%] left-[30%] w-28 z-20 w-60"
@@ -537,12 +537,12 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[25%] left-[25%] w-28 z-20 w-4"
+          src="/image/3.png" className="absolute bottom-[25%] left-[10%] w-28 z-20 w-4"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[20%] left-[60%] w-28 z-20 w-1"
+          src="/image/6.png" className="absolute bottom-[20%] left-[70%] w-28 z-20 w-1"
         />
              </div>
     </motion.section>
@@ -675,17 +675,17 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[150px]"
+          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[100px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[80%] left-[70%] w-28 z-20 w-[150px]"
+          src="/image/6.png" className="absolute bottom-[80%] left-[70%] w-28 z-20 w-[100px]"
         />
                 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[30%] left-[80%] w-28 z-20 w-[130px]"
+          src="/image/3.png" className="absolute bottom-[30%] left-[80%] w-28 z-20 w-[70px]"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -695,18 +695,18 @@ const addToCalendar = (type: 'google' | 'apple') => {
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/7.png" className="absolute bottom-[10%] left-[10%] w-28 z-20 w-[130px]"
+          src="/image/7.png" className="absolute bottom-[10%] left-[10%] w-28 z-20 w-[100px]"
         />
-                 <motion.img 
+                 {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[10%] left-[75%] w-28 z-20 w-[130px]"
-        />
-         <motion.img 
+        /> */}
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[90%] left-[1%] w-28 z-20 w-[50px]"
-        />
+        /> */}
 {/* <motion.img 
   src="/image/44.png" 
   className="absolute bottom-[17%] left-[33%] z-20 w-[200px] cursor-pointer"
@@ -1004,12 +1004,12 @@ const addToCalendar = (type: 'google' | 'apple') => {
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
-  className="flex justify-center z-10 w-full mt-[-50px] ml-20" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+  className="flex justify-center z-10 w-full mt-[-50px] ml-10" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
   <img 
     src="/image/57.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-110 " 
+    className="w-full h-auto object-contain scale-100 " 
       onClick={() => setIsOpen1(true)}
   />
 </motion.div>
@@ -1029,7 +1029,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[60%] left-[70%] w-28 z-20 w-40"
+          src="/image/3.png" className="absolute bottom-[65%] left-[70%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -1039,7 +1039,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-20"
+          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-10"
         />
         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -1050,11 +1050,11 @@ const addToCalendar = (type: 'google' | 'apple') => {
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/19.png" className="absolute bottom-[68%] left-[30%] w-28 z-20 w-80"
         /> */}
-         <motion.img 
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/20.png" className="absolute bottom-[60%] left-[20%] w-28 z-20 w-[50px]"
-        />
+        /> */}
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
@@ -1097,7 +1097,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
   <img 
     src="/image/58.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-120" 
+    className="w-full h-auto object-contain scale-105" 
   />
 </motion.div>
  {/* <motion.img 
@@ -1138,7 +1138,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute  bottom-[35%] left-[75%] w-28 z-20 w-[200px]"
+          src="/image/3.png" className="absolute  bottom-[40%] left-[75%] w-28 z-20 w-[100px]"
         />
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
@@ -1153,13 +1153,13 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[40%] left-[1%] w-28 z-20 w-[100px]"
+          src="/image/12.png" className="absolute bottom-[40%] left-[1%] w-28 z-20 w-[70px]"
         />
-         <motion.img 
+         {/* <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[65%] left-[90%] w-28 z-20 w-[70px]"
-        />
+        /> */}
                              </div>
 
     </motion.section>
