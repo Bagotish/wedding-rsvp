@@ -1447,7 +1447,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
     {/* Box Modal: Style disesuaikan */}
     <div 
       onClick={(e) => e.stopPropagation()}
-      className="relative w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/100 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)] text-center flex flex-col items-center"
+      className="relative w-full max-w-[280px] p-8 bg-white/60 backdrop-blur-3xl border border-white/100 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)] text-center flex flex-col items-center"
     >
       {/* Header: Date (Style 'Inactive' kecil) */}
       <div className="mb-8">
