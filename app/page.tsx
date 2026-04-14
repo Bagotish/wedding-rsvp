@@ -1439,66 +1439,47 @@ layoutId={`card-${item.id}`} // Unique layoutId
     </motion.div>
   )}
 </AnimatePresence>
-<AnimatePresence>
-  {selectedWish && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      
-      {/* 1. Backdrop Gelap (Soft) */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={() => setSelectedWish(null)}
-        className="absolute inset-0 bg-black/5 backdrop-blur-sm"
-      />
+{selectedWish && (
+  <div 
+    onClick={() => setSelectedWish(null)}
+    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
+  >
+    {/* Box Modal: Style disesuaikan */}
+    <div 
+      onClick={(e) => e.stopPropagation()}
+      className="relative w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)] text-center flex flex-col items-center"
+    >
+      {/* Header: Date (Style 'Inactive' kecil) */}
+      <div className="mb-8">
+        <span className="text-[10px] font-black text-[#A39584] uppercase tracking-[0.2em]">
+          {new Date(selectedWish.created_at ?? Date.now()).toLocaleDateString('en-GB', { 
+            day: '2-digit', month: 'long', year: 'numeric'
+          })}
+        </span>
+      </div>
 
-      {/* 2. Box Modal: Ikut style Nav yang kau nak */}
-      <motion.div
-        layoutId={`card-${selectedWish.id}`}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        onClick={(e) => e.stopPropagation()}
-        /* STYLE GLASS SEBIJIK MACAM NAV KAU */
-        className="relative w-full max-w-[320px] p-10 
-                   bg-white/20 backdrop-blur-3xl 
-                   border border-white/40 
-                   rounded-[40px] 
-                   shadow-[0_20px_50px_rgba(214,199,181,0.15)]
-                   text-center flex flex-col items-center overflow-hidden"
-      >
-        {/* Header: Date */}
-        <div className="mb-6">
-          <span className="text-[8px] font-black text-[#A39584] uppercase tracking-[0.4em]">
-            {new Date(selectedWish.created_at ?? Date.now()).toLocaleDateString('en-GB', { 
-              day: '2-digit', month: 'long' , year: 'numeric'
-            })}
-          </span>
-        </div>
+      {/* Message: Dengan Scrollbar */}
+      <div className="w-full max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+        <p className="text-[15px] text-[#4A443F] leading-relaxed font-serif italic break-words">
+          "{selectedWish.message || "-"}"
+        </p>
+      </div>
 
-        {/* Message: Dengan Scrollbar (Teks Coklat Gelap) */}
-        <div className="w-full max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-          <p className="text-[15px] text-[#4A443F] leading-relaxed font-serif italic break-words">
-            "{selectedWish.message||"-"}"
-          </p>
-        </div>
+      {/* Divider Kecil */}
+      <div className="w-10 h-[1px] bg-[#A39584]/30 my-8" />
 
-        {/* Divider Kecil */}
-        <div className="w-10 h-[1px] bg-[#A39584]/30 my-6" />
-
-        {/* Sender Info */}
-        <div className="flex flex-col items-center">
-          <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-2">
-            Sender
-          </span>
-          <h4 className="text-[14px] font-black text-[#4A443F] uppercase tracking-[0.15em]">
-            {selectedWish.name}
-          </h4>
-        </div>
-      </motion.div>
+      {/* Sender Info */}
+      <div className="flex flex-col items-center">
+        <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-2">
+          Sender
+        </span>
+        <h4 className="text-[14px] font-black text-[#4A443F] uppercase tracking-[0.15em]">
+          {selectedWish.name}
+        </h4>
+      </div>
     </div>
-  )}
-</AnimatePresence>
+  </div>
+)}
 {isOpen && (
   <div 
     // Klik luar untuk tutup
