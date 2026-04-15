@@ -576,12 +576,12 @@ const addToCalendar = (type: 'google' | 'apple') => {
   <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/16.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[100px]"
+          src="/image/16.png" className="absolute bottom-[70%] left-[40%] w-28 z-20 w-[100px]"
         />
           <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[60%] left-[10%] w-28 z-20 w-[100px]"
+          src="/image/3.png" className="absolute bottom-[65%] left-[10%] w-28 z-20 w-[100px]"
         />
          {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
