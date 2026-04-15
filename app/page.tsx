@@ -569,7 +569,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
     className="w-full h-auto object-contain scale-130" 
   /> */}
     <img 
-    src="/image/60.png" 
+    src="/image/61.png" 
     alt="Main Invite"
     className="w-full h-auto object-contain scale-130" 
   />
