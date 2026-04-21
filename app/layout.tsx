@@ -36,6 +36,12 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Aimi & Zul Wedding RSVP",
   description: "Official Wedding Invitation of Aimi & Zulhilmi",
+  // Tambah bahagian icons di sini
+  icons: {
+    icon: "/image/52.png", 
+    shortcut: "/image/52.png",
+    apple: "/image/52.png",
+  },
 };
 
 export const viewport = {
