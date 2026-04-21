@@ -149,7 +149,6 @@ showToast("BERJAYA DIHANTAR");
 };
 const [isOpen, setIsOpen] = useState(false);
 const [isOpen1, setIsOpen1] = useState(false);
-const [isOpen2, setIsOpen2] = useState(false);
 
 const handleLocation = (type:any) => {
   const address = "Puteri Palmera Glass Hall, Alor Setar, Kedah, Malaysia";
@@ -475,23 +474,23 @@ useEffect(() => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[80%] left-[80%] w-28 z-20 w-20"
+          src="/image/3.png" className="absolute bottom-[75%] left-[80%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/11.png" className="absolute bottom-[15%] left-[70%] w-28 z-20 w-[80px]"
         />
-        <motion.img 
+        {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[8%] left-[40%] w-28 z-20 w-[80px]"
-        />
-         <motion.img 
+          src="/image/12.png" className="absolute bottom-[10%] left-[50%] w-28 z-20 w-5"
+        /> */}
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 w-[60px]"
-        />
+          src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 w-6"
+        /> */}
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
@@ -601,30 +600,15 @@ useEffect(() => {
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/3.png" className="absolute bottom-[95%] left-[10%] w-28 z-20 w-[100px]"
         />
-         <motion.img 
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/64.png" className="absolute bottom-[85%] left-[2%] w-28 z-20 w-[15px]"
-        />
-                 <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/64.png" className="absolute bottom-[100%] left-[85%] w-28 z-20 w-[15px]"
-        />
-                         <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[100%] left-[80%] w-28 z-20 w-[100px]"
-        />
+          src="/image/3.png" className="absolute bottom-[80%] left-[100%] w-28 z-20 w-[100px]"
+        /> */}
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/65.png" className="absolute bottom-[105%] left-[10%] w-28 z-20 w-[40px]"
-        />
-                <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/65.png" className="absolute bottom-[100%] left-[75%] w-28 z-20 w-[40px]"
+          src="/image/6.png" className="absolute bottom-[60%] left-[75%] w-28 z-20 w-[100px]"
         />
         {/* <motion.img 
           src="/image/48.png" className="absolute bottom-[65%] left-[60%] w-28 z-20 w-[200px]"
@@ -653,7 +637,7 @@ useEffect(() => {
   className="relative z-10 w-full mt-[-80px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
   <img 
-    src="/image/63.png" 
+    src="/image/55.png" 
     alt="Main Invite"
     className="w-full h-auto object-contain scale-80" 
         onClick={() => setShowCalendarModal(true)}
@@ -678,12 +662,11 @@ useEffect(() => {
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/36.png" className="absolute bottom-[80%] left-[10%] w-28 z-20 w-[150px]"
         /> */}
-         <motion.img 
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/42.png" className="absolute bottom-[51%] left-[61%] w-28 z-20 w-[90px]"
-        onClick={() => setShowCalendarModal(true)}
-        />
+          src="/image/42.png" className="absolute bottom-[51%] left-[60%] w-28 z-20 w-[100px]"
+        /> */}
          {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
@@ -735,16 +718,16 @@ useEffect(() => {
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/7.png" className="absolute bottom-[15%] left-[5%] w-28 z-20 w-[90px]"
         />
-                 <motion.img 
+                 {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[10%] left-[70%] w-28 z-20 w-[130px]"
-        />
-         <motion.img 
+          src="/image/12.png" className="absolute bottom-[10%] left-[75%] w-28 z-20 w-[130px]"
+        /> */}
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[90%] left-[1%] w-28 z-20 w-[50px]"
-        />
+        /> */}
 {/* <motion.img 
   src="/image/44.png" 
   className="absolute bottom-[17%] left-[33%] z-20 w-[200px] cursor-pointer"
@@ -1045,10 +1028,10 @@ useEffect(() => {
   className="flex justify-center z-10 w-full mt-[-50px] ml-10" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
   <img 
-    src="/image/62.png" 
+    src="/image/57.png" 
     alt="Main Invite"
     className="w-full h-auto object-contain scale-90" 
-      // onClick={() => setIsOpen1(true)}
+      onClick={() => setIsOpen1(true)}
   />
 </motion.div>
 <motion.div 
@@ -1072,17 +1055,12 @@ useEffect(() => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[80%] left-[80%] w-28 z-20 w-[80px]"
+          src="/image/3.png" className="absolute bottom-[83%] left-[60%] w-28 z-20 w-[80px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/3.png" className="absolute bottom-[35%] left-[10%] w-28 z-20 w-[100px]"
-        />
-        <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/65.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[50px]"
         />
         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -1111,18 +1089,12 @@ useEffect(() => {
              {/* <motion.img 
           src="/image/46.png" className="absolute bottom-[45%] left-[10%] w-28 z-20 w-[400px]"
         /> */}
-        <motion.img 
-          src="/image/60.png" className="absolute bottom-[38%] left-[38%] w-28 z-20 w-[40px]"
+        {/* <motion.img 
+          src="/image/51.png" className="absolute bottom-[32%] left-[38%] w-28 z-20 w-[150px]"
             whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
   onClick={() => setIsOpen1(true)}
 
-        />
-                <motion.img 
-          src="/image/61.png" className="absolute bottom-[38%] left-[55%] w-28 z-20 w-[35px]"
-            whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
-  onClick={() => setIsOpen2(true)}
-
-        />
+        /> */}
              </div>
              
     </motion.section>
@@ -1197,23 +1169,18 @@ useEffect(() => {
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[75%] left-[38%] w-28 z-20 w-[100px]"
+          src="/image/3.png" className="absolute bottom-[75%] left-[40%] w-28 z-20 w-[100px]"
         />
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[45%] left-[1%] w-28 z-20 w-[70px]"
         />
-                <motion.img 
+         {/* <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[60%] left-[85%] w-28 z-20 w-[50px]"
-        />
-         <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/11.png" className="absolute bottom-[83%] left-[80%] w-28 z-20 w-[70px]"
-        />
+          src="/image/12.png" className="absolute bottom-[65%] left-[90%] w-28 z-20 w-[70px]"
+        /> */}
                              </div>
 
     </motion.section>
@@ -1375,7 +1342,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
 
   </div>
         {/* --- GLOBAL NAVIGATION --- */}
-{!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&&!isOpen2&& (
+{!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&& (
   <>
        <nav ref={navRef} className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center p-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-[200] pointer-events-auto max-w-[90vw] overflow-x-auto scrollbar-hide">
 <button
@@ -1577,7 +1544,7 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
       className="w-full max-w-[320px] p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)]"
     >
       <h3 className="text-[#A39584] text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-center">
-        Hubungi Whatsapp
+        Hubungi
       </h3>
       
       <div className="grid grid-cols-2 gap-3">
@@ -1624,77 +1591,6 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
         {/* Butang 4: Abdul Latiff */}
         <button 
           onClick={() => window.open('https://wa.me/60123456789', '_blank')}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Abdul Latiff
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Bapa Pengantin<br/>Lelaki
-          </span>
-        </button>
-
-      </div>
-    </div>
-  </div>
-)}
-{isOpen2 && (
-  <div 
-    onClick={() => setIsOpen2(false)} 
-    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
-  >
-    <div 
-      onClick={(e) => e.stopPropagation()} 
-      className="w-full max-w-[320px] p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)]"
-    >
-      <h3 className="text-[#A39584] text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-center">
-        Hubungi Telefon
-      </h3>
-      
-      <div className="grid grid-cols-2 gap-3">
-        
-        {/* Butang 1: Aimi Najwa */}
-        <button 
-onClick={() => window.location.href = 'tel:+60163799397'}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Aimi Najwa
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Perempuan
-          </span>
-        </button>
-
-        {/* Butang 2: Zulhilmi */}
-        <button 
-onClick={() => window.location.href = 'tel:+60177117852'}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Zulhilmi
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Lelaki
-          </span>
-        </button>
-
-        {/* Butang 3: Abd Raof */}
-        <button 
-onClick={() => window.location.href = 'tel:+60163799397'}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Abd Raof
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Bapa Pengantin<br/>Perempuan
-          </span>
-        </button>
-
-        {/* Butang 4: Abdul Latiff */}
-        <button 
-onClick={() => window.location.href = 'tel:+60163799397'}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
