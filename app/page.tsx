@@ -245,6 +245,7 @@ const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
   setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
 };
 // Target date: 8 Ogos 2026
+// const targetDate = new Date('2026-01-01T00:00:00');
 const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
 
@@ -1186,11 +1187,13 @@ useEffect(() => {
                             {/* --- SECTION Wishes --- */}
    {/* --- SECTION Wishes & Moments --- */}
 <motion.section 
-  className="relative min-h-screen w-full flex flex-col items-center snap-start px-4 pt-24 pb-32 overflow-x-hidden"
+  /* Guna min-h-[100dvh] untuk mobile yang lebih tepat */
+  className="relative min-h-[100dvh] w-full flex flex-col items-center snap-start px-4 pt-20 pb-20 overflow-x-hidden"
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
-  viewport={{ amount: 0.3 }}
-  transition={{ duration: 0.8 }}
+  /* Kurangkan amount kepada 0.1 supaya lebih mudah trigger */
+  viewport={{ amount: 0.1, once: true }} 
+  transition={{ duration: 0.5 }}
 >
   <motion.div 
     initial={{ opacity: 0, y: 20 }} 
@@ -1267,18 +1270,6 @@ layoutId={`card-${item.id}`} // Unique layoutId
                      text-center"
         >
           <div className="relative flex flex-col items-center">
-            
-            {/* Header: Date */}
-            {/* <div className="mb-4 flex items-center justify-center w-full">
-              <span className="text-[7px] font-black text-[#A39584] uppercase tracking-[0.3em]">
-                {item.created_at
-                  ? new Date(item.created_at).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                    })
-                  : "10 APR"}
-              </span>
-            </div> */}
 
             {/* Message: Serif & Elegant */}
             <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 
