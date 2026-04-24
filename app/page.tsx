@@ -326,13 +326,13 @@ useEffect(() => {
   if (localStorage.getItem('live_submitted') === 'true') setHasSubmittedLive(true);
 }, []);
 const thankYouMessages = [
-  "Tika tirai disingkap, kehadiran anda menjadi saksi cinta ini. Terima kasih kerana sudi menjadi sebahagian daripada kanvas memori Aimi dan Zulhilmi.",
-  "Kehadiran anda melengkapkan hari bahagia ini. Terima kasih kerana sudi meraikan cinta Aimi dan Zulhilmi dengan doa dan restu yang tidak ternilai.",
-  "Setiap langkah yang anda atur untuk ke sini adalah hadiah yang paling indah. Terima kasih kerana sudi berkongsi rasa bahagia ini bersama Aimi dan Zulhilmi.",
-  "Jauh atau dekat langkah diatur, terima kasih kerana sudi hadir. Kehadiran kalian adalah penyempurna hari bahagia buat Aimi dan Zulhilmi.",
-  "Aimi dan Zulhilmi dengan rendah hati ingin mengucapkan ribuan terima kasih atas kehadiran anda. Semoga ikatan ini diberkati, seperti doa kalian buat kami.",
-  "Terima kasih kerana sudi meluangkan masa, meraikan cinta, dan berkongsi memori. Kehadiran anda amat bermakna buat Aimi dan Zulhilmi.",
-  "Bukan sekadar tetamu, anda adalah sebahagian daripada cerita Aimi dan Zulhilmi. Terima kasih kerana sudi hadir dan mendoakan kebahagiaan ini.",
+  "Tika tirai disingkap, kehadiran anda menjadi saksi cinta ini. Terima kasih kerana sudi menjadi sebahagian daripada kanvas memori Kami.",
+  "Kehadiran anda melengkapkan hari bahagia ini. Terima kasih kerana sudi meraikan cinta Kami dengan doa dan restu yang tidak ternilai.",
+  "Setiap langkah yang anda atur untuk ke sini adalah hadiah yang paling indah. Terima kasih kerana sudi berkongsi rasa bahagia ini bersama Kami.",
+  "Jauh atau dekat langkah diatur, terima kasih kerana sudi hadir. Kehadiran kalian adalah penyempurna hari bahagia buat Kami Berdua.",
+  "Kami dengan rendah hati ingin mengucapkan ribuan terima kasih atas kehadiran anda. Semoga ikatan ini diberkati, seperti doa kalian buat kami.",
+  "Terima kasih kerana sudi meluangkan masa, meraikan cinta, dan berkongsi memori. Kehadiran anda amat bermakna buat Kami.",
+  "Bukan sekadar tetamu, anda adalah sebahagian daripada cerita Kami. Terima kasih kerana sudi hadir dan mendoakan kebahagiaan ini.",
   "Pucuk pauh delima batu,\nTempat hinggap si rama-rama,\nDoa yang baik kami restu,\nTerima kasih hadir bersama.",
   "Kalau ada sumur di ladang,\nBoleh kita menumpang mandi,\nTerima kasih sudi bertandang,\nMenyerikan majlis bahagia Aimi dan Zulhilmi.",
   "Layang-layang terbang ke awan,\nPutus tali jatuh ke bumi,\nTerima kasih atas kehadiran,\nSudi meraikan hari bahagia Aimi dan Zulhilmi.",
@@ -624,10 +624,15 @@ return (
     alt="Main Invite"
     className="w-full h-auto object-contain scale-130" 
   /> */}
-    <img 
+    {/* <img 
     src="/image/53.png" 
     alt="Main Invite"
     className="w-full h-auto object-contain scale-130" 
+  />  */}
+   <img 
+    src="/image/83.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-110" 
   /> 
   <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -1291,61 +1296,7 @@ return (
              
     </motion.section>
                 {/* --- SECTION Best Regards --- */}
-{/* <motion.section 
-  ref={sectionRefs.wishes}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ amount: 0.5 }}
-      transition={{ duration: 0.8 }}
-    >
-      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
 
- <motion.div 
-  initial={{ scale: 0.8, opacity: 0 }}
-  animate={{ scale: 1, opacity: 1 }}
-  transition={{ duration: 1 }}
-  className="flex justify-center z-10 w-full mt-[-55px] ml-1" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
->
-  <img 
-    src="/image/59.png" 
-    alt="Main Invite"
-    className="w-full h-auto object-contain scale-100" 
-  />
-</motion.div>
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute  bottom-[30%] left-[85%] w-28 z-20 w-[90px]"
-        />
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[20%] left-[30%] w-28 z-20 w-[100px]"
-        />
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[75%] left-[38%] w-28 z-20 w-[100px]"
-        />
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[45%] left-[1%] w-28 z-20 w-[70px]"
-        />
-                <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[60%] left-[85%] w-28 z-20 w-[50px]"
-        />
-         <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/11.png" className="absolute bottom-[83%] left-[80%] w-28 z-20 w-[70px]"
-        />
-        </div>
-
-    </motion.section> */}
 <motion.section 
   ref={sectionRefs.wishes}
       className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
@@ -1369,20 +1320,25 @@ return (
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/69.png" className="absolute bottom-[45%] left-[45%] w-28 z-20 w-[90px]"
         />
-        <motion.img 
+        {/* <motion.img 
           onClick={() => setSelectedImage("/image/32.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/32.png" className="absolute bottom-[70%] left-[6%] w-28 z-20 w-[140px]"
+          src="/image/32.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px]"
+        /> */}
+                <motion.img 
+          onClick={() => setSelectedImage("/image/84.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/84.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px]"
         />
          <motion.img 
                    onClick={() => setSelectedImage("/image/71.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/71.png" className="absolute bottom-[50%] left-[6%] w-28 z-20 w-[140px]"
+          src="/image/71.png" className="absolute bottom-[50%] left-[7%] w-28 z-20 w-[130px]"
         />
         <motion.img 
          onClick={() => setSelectedImage("/image/31.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/31.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[200px]"
+          src="/image/31.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[180px]"
         />
  <motion.img 
           src="/image/29.png" className="absolute bottom-[27%] left-[40%] w-28 z-20 w-[200px]"
@@ -1390,10 +1346,15 @@ return (
          <motion.img 
           src="/image/45.png" className="absolute bottom-[17%] left-[45%] w-28 z-20 w-[180px]"
         />
-         <motion.img 
+         {/* <motion.img 
                   onClick={() => setSelectedImage("/image/33.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/33.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[150px]"
+          src="/image/33.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[130px]"
+        /> */}
+                 <motion.img 
+                  onClick={() => setSelectedImage("/image/82.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/82.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[130px]"
         />
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
@@ -1413,12 +1374,12 @@ return (
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[41%] left-[1%] w-28 z-20 w-[70px]"
+          src="/image/12.png" className="absolute bottom-[41%] left-[1%] w-28 z-20 w-[60px]"
         />
          <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[57%] left-[80%] w-28 z-20 w-[70px]"
+          src="/image/12.png" className="absolute bottom-[57%] left-[80%] w-28 z-20 w-[60px]"
         />  
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
