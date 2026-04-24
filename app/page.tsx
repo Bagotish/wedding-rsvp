@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef,useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
@@ -72,6 +72,8 @@ useEffect(() => {
 
   return () => observer.disconnect();
 }, [isManualScroll]);
+const [nama, setnama] = useState("");
+
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 'live') => {
   e.preventDefault();
   setLoading(true);
@@ -79,11 +81,13 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 
   const form = e.currentTarget;
   const formData = new FormData(form);
   const name = formData.get('name');
+
 if (!name) {
     showToast("SILA LENGKAPKAN", "error");
     setLoading(false);
     return;
   }
+  setnama(name as string);
   try {
     let imageUrl = '';
 
@@ -129,7 +133,13 @@ if(type=='rsvp') {
 
 }
 showToast("BERJAYA DIHANTAR");
-
+if (type === 'rsvp') {
+    localStorage.setItem('rsvp_submitted', 'true');
+    setHasSubmittedRsvp(true);
+  } else {
+    localStorage.setItem('live_submitted', 'true');
+    setHasSubmittedLive(true);
+  }
     // --- RESET SEMUA ---
     form.reset();
     if (setAttendance) setAttendance(''); // Check if function exists
@@ -304,8 +314,36 @@ useEffect(() => {
       });
     }
   }
-}, [activeTab]); // Effect ni akan jalan setiap kali activeTab berubah
-    return (
+}, [activeTab]);
+
+const [selectedImage, setSelectedImage] = useState<string | null>(null);
+const [hasSubmittedRsvp, setHasSubmittedRsvp] = useState(false);
+const [hasSubmittedLive, setHasSubmittedLive] = useState(false);
+
+// Check localStorage bila page load
+useEffect(() => {
+  if (localStorage.getItem('rsvp_submitted') === 'true') setHasSubmittedRsvp(true);
+  if (localStorage.getItem('live_submitted') === 'true') setHasSubmittedLive(true);
+}, []);
+const thankYouMessages = [
+  "Tika tirai disingkap, kehadiran anda menjadi saksi cinta ini. Terima kasih kerana sudi menjadi sebahagian daripada kanvas memori Aimi dan Zulhilmi.",
+  "Kehadiran anda melengkapkan hari bahagia ini. Terima kasih kerana sudi meraikan cinta Aimi dan Zulhilmi dengan doa dan restu yang tidak ternilai.",
+  "Setiap langkah yang anda atur untuk ke sini adalah hadiah yang paling indah. Terima kasih kerana sudi berkongsi rasa bahagia ini bersama Aimi dan Zulhilmi.",
+  "Jauh atau dekat langkah diatur, terima kasih kerana sudi hadir. Kehadiran kalian adalah penyempurna hari bahagia buat Aimi dan Zulhilmi.",
+  "Aimi dan Zulhilmi dengan rendah hati ingin mengucapkan ribuan terima kasih atas kehadiran anda. Semoga ikatan ini diberkati, seperti doa kalian buat kami.",
+  "Terima kasih kerana sudi meluangkan masa, meraikan cinta, dan berkongsi memori. Kehadiran anda amat bermakna buat Aimi dan Zulhilmi.",
+  "Bukan sekadar tetamu, anda adalah sebahagian daripada cerita Aimi dan Zulhilmi. Terima kasih kerana sudi hadir dan mendoakan kebahagiaan ini.",
+  "Pucuk pauh delima batu,\nTempat hinggap si rama-rama,\nDoa yang baik kami restu,\nTerima kasih hadir bersama.",
+  "Kalau ada sumur di ladang,\nBoleh kita menumpang mandi,\nTerima kasih sudi bertandang,\nMenyerikan majlis bahagia Aimi dan Zulhilmi.",
+  "Layang-layang terbang ke awan,\nPutus tali jatuh ke bumi,\nTerima kasih atas kehadiran,\nSudi meraikan hari bahagia Aimi dan Zulhilmi.",
+];
+
+const randomMessage = useMemo(() => {
+  const randomIndex = Math.floor(Math.random() * thankYouMessages.length);
+  return thankYouMessages[randomIndex];
+}, []); // [] bermaksud dia hanya 'random' sekali masa pertama kali load
+
+return (
     <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
       
 
@@ -636,6 +674,94 @@ useEffect(() => {
   </div>
 
     </motion.section>
+            {/* --- SECTION MAMA ABAH --- */}
+    <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
+ 
+  <motion.img 
+          src="/image/80.png" className="absolute top-[16%] left-[55%] w-32 z-20 w-[95px]"
+        />
+          <motion.img 
+          src="/image/81.png" className="absolute top-[16%] left-[25%] w-32 z-20 w-[95px]"
+        />
+        <motion.img 
+          src="/image/72.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[100px]"
+        />
+          <motion.img 
+          src="/image/73.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px]"
+        />
+                  <motion.img 
+          src="/image/78.png" className="absolute top-[10%] left-[25%] w-32 z-20 w-[200px]"
+        />
+                          <motion.img 
+          src="/image/79.png" className="absolute top-[50%] left-[35%] w-32 z-20 w-[140px]"
+        />
+         <motion.img 
+          src="/image/76.png" className="absolute top-[38%] left-[25%] w-32 z-20 w-[100px]"
+        />
+                 <motion.img 
+          src="/image/77.png" className="absolute top-[38%] left-[58%] w-32 z-20 w-[110px]"
+        />
+                 <motion.img 
+          src="/image/74.png" className="absolute top-[78%] left-[25%] w-32 z-20 w-[120px]"
+        />
+                 <motion.img 
+          src="/image/75.png" className="absolute top-[78%] left-[58%] w-32 z-20 w-[110px]"
+        />
+                         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/64.png" className="absolute bottom-[50%] left-[10%] w-28 z-20 w-[20px]"
+        />
+                                 <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/64.png" className="absolute bottom-[70%] left-[90%] w-28 z-20 w-[20px]"
+        />
+         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/65.png" className="absolute bottom-[60%] left-[80%] w-28 z-20 w-[50px]"
+        />
+                 <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/65.png" className="absolute bottom-[50%] left-[1%] w-28 z-20 w-[40px]"
+        />
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }}
+  src="/image/2.png" 
+  className="absolute top-[10%] left-[-15%] w-32 rotate-[-15deg] w-50 z-0" 
+/>
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+  src="/image/4.png" 
+  className="absolute top-[10%] right-[-5%] w-40 z-0" // Guna w-40 (160px) atau w-64 (256px)
+/>
+
+        {/* Imej 5: Contoh Bunga Kanan Bawah */}
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/5.png" className="absolute bottom-[10%] right-[-10%] w-36 z-[-10] rotate-[10deg] w-40 "
+        />
+ <motion.img 
+   animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/7.png" className="absolute top-[70%] left-[-5%] w-32 z-20 rotate-[-15deg] w-40 z-0"
+        />             
+
+  </div>
+
+    </motion.section>
             {/* --- SECTION Date and Location --- */}
  <motion.section 
       ref={sectionRefs.calendar}
@@ -664,7 +790,7 @@ useEffect(() => {
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
-  className="relative z-10 w-full mt-[-85px]"
+  className="relative z-10 w-full mt-[-70px]"
 >
   <img 
     src="/image/56.png" 
@@ -681,7 +807,7 @@ useEffect(() => {
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/42.png" className="absolute bottom-[51%] left-[61%] w-28 z-20 w-[90px]"
+          src="/image/42.png" className="absolute bottom-[52%] left-[61%] w-28 z-20 w-[90px]"
         onClick={() => setShowCalendarModal(true)}
         />
          {/* <motion.img 
@@ -805,6 +931,44 @@ useEffect(() => {
   </button>
 </div>
 {subTabAction === 'rsvp' ? (
+  hasSubmittedRsvp ? (
+    // Paparan Success
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      className="relative w-full max-w-[300px] mx-auto my-12"
+    >
+      {/* Glass Container */}
+      <div className="bg-white/20 backdrop-blur-lg border border-white/40 shadow-[0_8px_32px_rgba(74,68,63,0.1)] rounded-[2.5rem] p-8 text-center">
+
+        <div className="flex flex-col items-center justify-center space-y-6">
+
+<div className="w-12 h-12 border border-[#D6C7B5] rounded-full flex items-center justify-center">
+    {/* <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A443F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg> */}
+        <img
+    src="/image/52.png"
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-130"
+  />
+  </div>
+
+      <div className="space-y-2">
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
+         Terima Kasih {nama}!
+        </h3>
+<p className="text-[9px] uppercase tracking-[0.2em] text-[#4A443F]/80 leading-relaxed text-center whitespace-pre-line">
+  {randomMessage}
+</p>
+</div>
+
+    </div>
+  </div>
+</motion.div>
+  ) : (
+    // Form asal anda
+    
  <form onSubmit={(e) => handleSubmit(e, 'rsvp')} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
     {/* Main Card Container (Style ikut Live Snap) */}
     <div className="bg-white p-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(74,68,63,0.08)] border border-[#D6C7B5]/10">
@@ -902,9 +1066,7 @@ useEffect(() => {
           <textarea 
             name="message" 
             placeholder="UCAPAN" 
-            // className="w-full bg-[#FBF9F7] font-bold focus:ring-[#D6C7B5] border border-[#D6C7B5]/10 px-6 py-4 rounded-2xl text-[10px] font-bold outline-none focus:ring-1 focus:ring-[#4A443F]/20 uppercase tracking-widest h-28 placeholder:text-[#D6C7B5]/50 resize-none transition-all" 
             className="w-full bg-[#FBF9F7] px-5 py-4 rounded-xl text-[10px] font-bold outline-none focus:ring-1 focus:ring-[#D6C7B5] uppercase tracking-widest transition-all  h-28" 
-
           />
         </div>
 
@@ -918,6 +1080,8 @@ useEffect(() => {
       </div>
     </div>
   </form>
+  )
+
 ) : (
     <form onSubmit={(e) => handleSubmit(e, 'live')} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
 
@@ -1127,7 +1291,7 @@ useEffect(() => {
              
     </motion.section>
                 {/* --- SECTION Best Regards --- */}
-<motion.section 
+{/* <motion.section 
   ref={sectionRefs.wishes}
       className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
@@ -1149,41 +1313,6 @@ useEffect(() => {
     className="w-full h-auto object-contain scale-100" 
   />
 </motion.div>
- {/* <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/30.png" className="absolute bottom-[50%] left-[50%] w-28 z-20 w-[250px]"
-        />
-        <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/32.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[200px]"
-        />
-         <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/32.png" className="absolute bottom-[50%] left-[10%] w-28 z-20 w-[200px]"
-        />
-        <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/31.png" className="absolute bottom-[70%] left-[50%] w-28 z-20 w-[250px]"
-        />
- <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/29.png" className="absolute bottom-[27%] left-[45%] w-28 z-20 w-[250px]"
-        />
-         <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/45.png" className="absolute bottom-[20%] left-[53%] w-28 z-20 w-[184px]"
-        /> */}
-        {/* <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/28.png" className="absolute bottom-[20%] left-[70%] w-28 z-20 w-[120px]"
-        /> */}
-         {/* <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/33.png" className="absolute bottom-[15%] left-[1%] w-28 z-20 w-[250px]"
-        /> */}
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
@@ -1214,7 +1343,89 @@ useEffect(() => {
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/11.png" className="absolute bottom-[83%] left-[80%] w-28 z-20 w-[70px]"
         />
-                             </div>
+        </div>
+
+    </motion.section> */}
+<motion.section 
+  ref={sectionRefs.wishes}
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
+<motion.img 
+  src="/image/19.png" 
+  className="absolute bottom-[73%] left-[1%] w-[230px] z-20 -scale-x-100"
+/>
+ <motion.img 
+ onClick={() => setSelectedImage("/image/70.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/70.png" className="absolute bottom-[40%] left-[73%] w-28 z-20 w-[90px]"
+        />
+         <motion.img 
+          onClick={() => setSelectedImage("/image/69.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/69.png" className="absolute bottom-[45%] left-[45%] w-28 z-20 w-[90px]"
+        />
+        <motion.img 
+          onClick={() => setSelectedImage("/image/32.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/32.png" className="absolute bottom-[70%] left-[6%] w-28 z-20 w-[140px]"
+        />
+         <motion.img 
+                   onClick={() => setSelectedImage("/image/71.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/71.png" className="absolute bottom-[50%] left-[6%] w-28 z-20 w-[140px]"
+        />
+        <motion.img 
+         onClick={() => setSelectedImage("/image/31.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/31.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[200px]"
+        />
+ <motion.img 
+          src="/image/29.png" className="absolute bottom-[27%] left-[40%] w-28 z-20 w-[200px]"
+        />
+         <motion.img 
+          src="/image/45.png" className="absolute bottom-[17%] left-[45%] w-28 z-20 w-[180px]"
+        />
+         <motion.img 
+                  onClick={() => setSelectedImage("/image/33.png")}
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/33.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[150px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute  bottom-[28%] left-[85%] w-28 z-20 w-[80px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[15%] left-[32%] w-28 z-20 w-[80px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-[70px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[41%] left-[1%] w-28 z-20 w-[70px]"
+        />
+         <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[57%] left-[80%] w-28 z-20 w-[70px]"
+        />  
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/11.png" className="absolute bottom-[88%] left-[80%] w-28 z-20 w-[70px]"
+        />
+          </div>
 
     </motion.section>
    {/* --- SECTION Wishes & Moments --- */}
@@ -1274,7 +1485,7 @@ useEffect(() => {
     <div className="min-h-[400px]">
       <AnimatePresence mode="wait">
         {subTabRolls === 'wishes' ? (
-/* --- VIEW 1: 2-COLUMN MINIMAL CANVAS --- */
+
 <motion.div 
   key="wishes-canvas"
   initial={{ opacity: 0 }}
@@ -1283,46 +1494,43 @@ useEffect(() => {
 >
   {data.filter(item => item.type === 'rsvp').map((item, index) => (
    <motion.div
-          key={item.id}
-layoutId={`card-${item.id}`} // Unique layoutId
-      onClick={() => setSelectedWish(item)}          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: index * 0.05 }}
-          /* 
-             break-inside-avoid: Elakkan kad terputus antara column
-             inline-block + w-full: Memastikan kad duduk dalam container dengan betul
-          */
-          className="break-inside-avoid inline-block w-full 
-                     relative p-6
-                     bg-white/60 backdrop-blur-3xl 
-                     border border-white/40 
-                     rounded-[35px] 
-                     shadow-[0_20px_40px_rgba(74,68,63,0.08)]
-                     text-center"
-        >
-          <div className="relative flex flex-col items-center">
+  key={item.id}
+  layoutId={`card-${item.id}`}
+  onClick={() => setSelectedWish(item)}          
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ delay: index * 0.05 }}
+  className="break-inside-avoid inline-block w-full 
+             relative p-6
+             bg-white/60 backdrop-blur-3xl 
+             border border-white/40 
+             rounded-[35px] 
+             shadow-[0_20px_40px_rgba(74,68,63,0.08)]
+             text-center"
+>
+  <div className="relative flex flex-col items-center">
 
-            {/* Message: Serif & Elegant */}
-            <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 
-                          break-words w-full overflow-hidden whitespace-pre-wrap">
-              "{item.message}"
-            </p>
+    {/* Message */}
+    <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 
+                  break-words w-full overflow-hidden whitespace-pre-wrap">
+      "{item.message}"
+    </p>
 
-            {/* Divider Kecil: mx-auto untuk center */}
-            <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
+    {/* Divider */}
+    <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
 
-            {/* Sender Info: Minimalist & Bold */}
-            <div className="flex flex-col items-center">
-              <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">
-                Sender
-              </span>
-              <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">
-                {item.name}
-              </h4>
-            </div>
-          </div>
-        </motion.div>
+    {/* Sender */}
+    <div className="flex flex-col items-center">
+      <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">
+        Sender
+      </span>
+      <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">
+        {item.name}
+      </h4>
+    </div>
+  </div>
+</motion.div>
   ))}
 </motion.div> 
 ) : (
@@ -1375,7 +1583,7 @@ layoutId={`card-${item.id}`} // Unique layoutId
 
   </div>
         {/* --- GLOBAL NAVIGATION --- */}
-{!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&&!isOpen2&& (
+{!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&&!isOpen2&&!selectedImage&& (
   <>
        <nav ref={navRef} className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center p-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-[200] pointer-events-auto max-w-[90vw] overflow-x-auto scrollbar-hide">
 <button
@@ -1743,6 +1951,19 @@ onClick={() => window.location.href = 'tel:+60163799397'}
         </button>
       </div>
     </div>
+  </div>
+)}
+{selectedImage && (
+  <div 
+    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
+    onClick={() => setSelectedImage(null)} // Tekan luar gambar untuk tutup
+  >
+    <motion.img 
+      initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      src={selectedImage} 
+      className="max-w-[90%] max-h-[90%] object-contain rounded-lg"
+    />
   </div>
 )}
 {/* <JooxPlayer/> */}
