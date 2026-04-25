@@ -602,7 +602,8 @@ return (
              </div>
     </motion.section>
         {/* --- SECTION Sofa --- */}
-    <motion.section 
+
+        <motion.section 
       className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
@@ -610,54 +611,55 @@ return (
       transition={{ duration: 0.8 }}
     >
       <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
-{/* <motion.img 
-          src="/image/47.png" className="absolute bottom-[70%] left-[23%] w-28 z-20 w-90"
-        /> */}
               <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
   className="relative z-10 w-full mt-[10px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
-  {/* <img 
-    src="/image/53.png" 
-    alt="Main Invite"
-    className="w-full h-auto object-contain scale-130" 
-  /> */}
-    {/* <img 
-    src="/image/53.png" 
-    alt="Main Invite"
-    className="w-full h-auto object-contain scale-130" 
-  />  */}
-   <img 
-    src="/image/83.png" 
+  <img 
+    src="/image/35.png" 
     alt="Main Invite"
     className="w-full h-auto object-contain scale-110" 
-  /> 
+  />
   <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/16.png" className="absolute bottom-[110%] left-[40%] w-28 z-20 w-[100px]"
+          src="/image/16.png" className="absolute bottom-[110%] left-[45%] w-28 z-20 w-[100px]"
         />
           <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[95%] left-[10%] w-28 z-20 w-[100px]"
+          src="/image/3.png" className="absolute bottom-[95%] left-[5%] w-28 z-20 w-[100px]"
         />
-         <motion.img 
+        <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/64.png" className="absolute bottom-[85%] left-[2%] w-28 z-20 w-[15px]"
+          src="/image/6.png" className="absolute bottom-[105%] left-[80%] w-28 z-20 w-[100px]"
+        />
+        <motion.img 
+          src="/image/48.png" className="absolute bottom-[56%] left-[57%] w-28 z-20 w-[135px]"
+        />
+                <motion.img 
+          src="/image/49.png" className="absolute bottom-[62%] left-[23%] w-28 z-20 w-[130px]"
+        />
+                <motion.img 
+                 onClick={() => setSelectedImage("/image/85.png")}
+          src="/image/85.png" className="absolute bottom-[75%] left-[63%] w-28 z-20 w-[90px]"
+        />
+                        <motion.img 
+          onClick={() => setSelectedImage("/image/66.png")}
+          src="/image/66.png" className="absolute bottom-[80%] left-[27%] w-28 z-20 w-[90px]"
         />
                  <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/64.png" className="absolute bottom-[100%] left-[85%] w-28 z-20 w-[15px]"
+          src="/image/64.png" className="absolute bottom-[90%] left-[2%] w-28 z-20 w-[20px]"
         />
-                         <motion.img 
+                 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[100%] left-[80%] w-28 z-20 w-[100px]"
+          src="/image/64.png" className="absolute bottom-[105%] left-[85%] w-28 z-20 w-[20px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -667,14 +669,8 @@ return (
                 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/65.png" className="absolute bottom-[100%] left-[75%] w-28 z-20 w-[40px]"
+          src="/image/65.png" className="absolute bottom-[105%] left-[75%] w-28 z-20 w-[40px]"
         />
-        {/* <motion.img 
-          src="/image/48.png" className="absolute bottom-[65%] left-[60%] w-28 z-20 w-[200px]"
-        />
-                <motion.img 
-          src="/image/49.png" className="absolute bottom-[70%] left-[15%] w-28 z-20 w-[190px]"
-        /> */}
 </motion.div>
   </div>
 
