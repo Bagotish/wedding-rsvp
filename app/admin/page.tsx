@@ -107,8 +107,23 @@ const filteredData = data.filter((item) => {
             <h1 className="text-3xl font-black text-[#4A443F] uppercase tracking-tighter">Admin</h1>
             <p className="text-[10px] font-bold text-[#A39584] uppercase tracking-[0.3em]">Guest & Moments Manager</p>
           </div>
-          <button onClick={() => setIsAuthorized(false)} className="text-[9px] font-black uppercase text-red-400 border border-red-100 px-4 py-2 rounded-full">Logout</button>
-        </div>
+<div className="flex items-center gap-2">
+  {/* Button Reset RSVP */}
+  <button 
+    onClick={() => { localStorage.setItem('rsvp_submitted', 'false'), localStorage.setItem('rsvp_sender','');alert('RSVP Berjaya Direset!'); }} 
+    className="text-[9px] font-black uppercase text-gray-500 border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 transition-all"
+  >
+    Reset RSVP
+  </button>
+
+  {/* Button Logout */}
+  <button 
+    onClick={() => setIsAuthorized(false)} 
+    className="text-[9px] font-black uppercase text-red-400 border border-red-100 px-4 py-2 rounded-full hover:bg-red-50 transition-all"
+  >
+    Logout
+  </button>
+</div>        </div>
 
        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 w-full">
   {[

@@ -10,7 +10,28 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+const thankYouMessages = [
+  "Tika tirai disingkap, kehadiran anda menjadi saksi cinta ini. Terima kasih kerana sudi menjadi sebahagian daripada kanvas memori Kami.",
+  "Kehadiran anda melengkapkan hari bahagia ini. Terima kasih kerana sudi meraikan cinta Kami dengan doa dan restu yang tidak ternilai.",
+  "Setiap langkah yang anda atur untuk ke sini adalah hadiah yang paling indah. Terima kasih kerana sudi berkongsi rasa bahagia ini bersama Kami.",
+  "Jauh atau dekat langkah diatur, terima kasih kerana sudi hadir. Kehadiran kalian adalah penyempurna hari bahagia buat Kami Berdua.",
+  "Kami dengan rendah hati ingin mengucapkan ribuan terima kasih atas kehadiran anda. Semoga ikatan ini diberkati, seperti doa kalian buat kami.",
+  "Terima kasih kerana sudi meluangkan masa, meraikan cinta, dan berkongsi memori. Kehadiran anda amat bermakna buat Kami.",
+  "Bukan sekadar tetamu, anda adalah sebahagian daripada cerita Kami. Terima kasih kerana sudi hadir dan mendoakan kebahagiaan ini.",
+  "Pucuk pauh delima batu,\nTempat hinggap si rama-rama,\nDoa yang baik kami restu,\nTerima kasih hadir bersama.",
+  "Kalau ada sumur di ladang,\nBoleh kita menumpang mandi,\nTerima kasih sudi bertandang,\nMenyerikan majlis bahagia Aimi dan Zulhilmi.",
+  "Layang-layang terbang ke awan,\nPutus tali jatuh ke bumi,\nTerima kasih atas kehadiran,\nSudi meraikan hari bahagia Aimi dan Zulhilmi.",
+"Perjalanan ini tidak menjanjikan jalan yang sentiasa rata, namun ia menjanjikan bahu yang sentiasa ada untuk bersandar.",
 
+];
+const thankYouMessages1 = [
+"Majlis telah melabuhkan tirai, namun kenangan tetap abadi. Terima kasih kerana sudi mengingati tarikh anniversary kami, 08.08.2026.",
+"Indah sungguh memori 08.08.2026. Terima kasih kerana menjadi sebahagian daripada perjalanan cinta kami.",
+"Majlis telah melabuhkan tirai. Terima kasih kerana terus mendoakan kebahagiaan kami.",
+"Jauh perjalanan, manis memori. Terima kasih kerana hadir dan mendoakan ikatan ini sentiasa dalam rahmat-Nya.",
+"Kami pulang dengan seribu kenangan, membawa doa-doa indah daripada kalian. Terima kasih atas segalanya.",
+"Satu hati, seribu memori.",
+];
 export default function WeddingApp() {
   
 const [activeTab, setActiveTab] = useState<
@@ -135,6 +156,7 @@ if(type=='rsvp') {
 showToast("BERJAYA DIHANTAR");
 if (type === 'rsvp') {
     localStorage.setItem('rsvp_submitted', 'true');
+    localStorage.setItem('rsvp_sender', name as string);
     setHasSubmittedRsvp(true);
   } else {
     localStorage.setItem('live_submitted', 'true');
@@ -256,11 +278,21 @@ const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
   setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
 };
 // Target date: 8 Ogos 2026
-// const targetDate = new Date('2026-01-01T00:00:00');
+// const targetDate = new Date('2026-01-01T00:00:00'); //test
 const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
+const now = new Date();
 
+// RSVP: Tutup selepas 10/08/2026 jam 23:59:59
+const rsvpDeadline = new Date('2026-08-10T23:59:59');
+// const rsvpDeadline = new Date('2026-04-10T23:59:59'); //test
+const isRsvpLocked = now > rsvpDeadline;
 
+// Live Snap: Buka 08/08/2026 hingga 09/08/2026
+// const liveStartDate = new Date('22026-01-01T00:00:00'); //test
+const liveStartDate = new Date('2026-08-08T00:00:00');
+const liveEndDate = new Date('2026-08-08T23:59:59');
+const isLiveLocked = now < liveStartDate || now > liveEndDate;
    const [showCalendarModal, setShowCalendarModal] = useState(false);
 
 const addToCalendar = (type: 'google' | 'apple') => {
@@ -319,30 +351,35 @@ useEffect(() => {
 const [selectedImage, setSelectedImage] = useState<string | null>(null);
 const [hasSubmittedRsvp, setHasSubmittedRsvp] = useState(false);
 const [hasSubmittedLive, setHasSubmittedLive] = useState(false);
+const [randomMessage, setRandomMessage] = useState(thankYouMessages[0]);
+const [randomMessageRSVP, setRandomMessageRSVP] = useState(thankYouMessages[0]);
 
 // Check localStorage bila page load
 useEffect(() => {
+// localStorage.setItem('rsvp_submitted', 'false')
+// console.log('hehe', localStorage.getItem('rsvp_submitted'));
   if (localStorage.getItem('rsvp_submitted') === 'true') setHasSubmittedRsvp(true);
   if (localStorage.getItem('live_submitted') === 'true') setHasSubmittedLive(true);
-}, []);
-const thankYouMessages = [
-  "Tika tirai disingkap, kehadiran anda menjadi saksi cinta ini. Terima kasih kerana sudi menjadi sebahagian daripada kanvas memori Kami.",
-  "Kehadiran anda melengkapkan hari bahagia ini. Terima kasih kerana sudi meraikan cinta Kami dengan doa dan restu yang tidak ternilai.",
-  "Setiap langkah yang anda atur untuk ke sini adalah hadiah yang paling indah. Terima kasih kerana sudi berkongsi rasa bahagia ini bersama Kami.",
-  "Jauh atau dekat langkah diatur, terima kasih kerana sudi hadir. Kehadiran kalian adalah penyempurna hari bahagia buat Kami Berdua.",
-  "Kami dengan rendah hati ingin mengucapkan ribuan terima kasih atas kehadiran anda. Semoga ikatan ini diberkati, seperti doa kalian buat kami.",
-  "Terima kasih kerana sudi meluangkan masa, meraikan cinta, dan berkongsi memori. Kehadiran anda amat bermakna buat Kami.",
-  "Bukan sekadar tetamu, anda adalah sebahagian daripada cerita Kami. Terima kasih kerana sudi hadir dan mendoakan kebahagiaan ini.",
-  "Pucuk pauh delima batu,\nTempat hinggap si rama-rama,\nDoa yang baik kami restu,\nTerima kasih hadir bersama.",
-  "Kalau ada sumur di ladang,\nBoleh kita menumpang mandi,\nTerima kasih sudi bertandang,\nMenyerikan majlis bahagia Aimi dan Zulhilmi.",
-  "Layang-layang terbang ke awan,\nPutus tali jatuh ke bumi,\nTerima kasih atas kehadiran,\nSudi meraikan hari bahagia Aimi dan Zulhilmi.",
-];
-
-const randomMessage = useMemo(() => {
   const randomIndex = Math.floor(Math.random() * thankYouMessages.length);
-  return thankYouMessages[randomIndex];
-}, []); // [] bermaksud dia hanya 'random' sekali masa pertama kali load
+    setRandomMessage(thankYouMessages[randomIndex]);
+      const randomIndex1 = Math.floor(Math.random() * thankYouMessages1.length);
+    setRandomMessageRSVP(thankYouMessages1[randomIndex1]);
 
+  const storedName = localStorage.getItem('rsvp_sender')|| "";
+  if (storedName) {
+    setnama(storedName||"");
+  }
+}, []);
+
+// const randomMessage = useMemo(() => {
+//   const randomIndex = Math.floor(Math.random() * thankYouMessages.length);
+//   return thankYouMessages[randomIndex];
+// }, []); // [] bermaksud dia hanya 'random' sekali masa pertama kali load
+
+// const randomMessageRSVP = useMemo(() => {
+//   const randomIndex = Math.floor(Math.random() * thankYouMessages1.length);
+//   return thankYouMessages1[randomIndex];
+// }, []);
 return (
     <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
       
@@ -638,10 +675,10 @@ return (
           src="/image/6.png" className="absolute bottom-[105%] left-[80%] w-28 z-20 w-[100px]"
         />
         <motion.img 
-          src="/image/48.png" className="absolute bottom-[56%] left-[57%] w-28 z-20 w-[135px]"
+          src="/image/48.png" className="absolute bottom-[57%] left-[57%] w-28 z-20 w-[145px]"
         />
                 <motion.img 
-          src="/image/49.png" className="absolute bottom-[62%] left-[23%] w-28 z-20 w-[130px]"
+          src="/image/49.png" className="absolute bottom-[63%] left-[23%] w-28 z-20 w-[130px]"
         />
                 <motion.img 
                  onClick={() => setSelectedImage("/image/85.png")}
@@ -686,15 +723,19 @@ return (
       <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
  
   <motion.img 
+                   onClick={() => setSelectedImage("/image/80.png")}
           src="/image/80.png" className="absolute top-[16%] left-[55%] w-32 z-20 w-[95px]"
         />
           <motion.img 
+                           onClick={() => setSelectedImage("/image/81.png")}
           src="/image/81.png" className="absolute top-[16%] left-[25%] w-32 z-20 w-[95px]"
         />
         <motion.img 
+                         onClick={() => setSelectedImage("/image/72.png")}
           src="/image/72.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[100px]"
         />
           <motion.img 
+                           onClick={() => setSelectedImage("/image/73.png")}
           src="/image/73.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px]"
         />
                   <motion.img 
@@ -714,6 +755,9 @@ return (
         />
                  <motion.img 
           src="/image/75.png" className="absolute top-[78%] left-[58%] w-32 z-20 w-[110px]"
+        />
+                         <motion.img 
+          src="/image/86.png" className="absolute top-[46%] left-[40%] w-32 z-20 w-[90px]"
         />
                          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -739,13 +783,13 @@ return (
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }}
   src="/image/2.png" 
-  className="absolute top-[10%] left-[-15%] w-32 rotate-[-15deg] w-50 z-0" 
+  className="absolute top-[10%] left-[-15%] w-32 rotate-[-15deg] w-50 z-[-10]" 
 />
 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
   src="/image/4.png" 
-  className="absolute top-[10%] right-[-5%] w-40 z-0" // Guna w-40 (160px) atau w-64 (256px)
+  className="absolute top-[10%] right-[-5%] w-40 z-[-10]" // Guna w-40 (160px) atau w-64 (256px)
 />
 
         {/* Imej 5: Contoh Bunga Kanan Bawah */}
@@ -754,11 +798,12 @@ return (
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/5.png" className="absolute bottom-[10%] right-[-10%] w-36 z-[-10] rotate-[10deg] w-40 "
         />
- <motion.img 
-   animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/7.png" className="absolute top-[70%] left-[-5%] w-32 z-20 rotate-[-15deg] w-40 z-0"
-        />             
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }}
+  src="/image/7.png" 
+  className="absolute top-[70%] left-[-5%] w-40 rotate-[-15deg] z-[-10]"
+/>          
 
   </div>
 
@@ -898,41 +943,59 @@ return (
     {/* Sub-tab Selector - More Modern & Rounded */}
     <div className="flex bg-[#F3EFE9] p-1 rounded-full border border-[#D6C7B5]/20 shadow-inner">
   
-  <button 
-    onClick={() => {
+<button 
+  onClick={() => {
+    if (isRsvpLocked) {
+      showToast("RSVP SUDAH DITUTUP", "error");
+    } else {
       setSubTabAction('rsvp');
       setPreviewUrl(null);
-    }} 
-    className={`flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${subTabAction === 'rsvp' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]'}`}
-  >
-    RSVP
-  </button>
+    }
+  }} 
+  className={`
+    flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all 
+    flex items-center justify-center gap-1.5 
+    ${isRsvpLocked ? 'text-[#A39584]/50' : (subTabAction === 'rsvp' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]')}
+  `}
+>
+  {isRsvpLocked && (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
+      <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
+    </svg>
+  )}
+  RSVP
+</button>
   
   <button 
-    onClick={() => {
-      if(isLocked) {
-        // Guna Snackbar/Toast yang kita buat tadi
-        showToast("LIVE SNAP AKAN DIBUKA PADA 08.08.2026", "error");
-      } else {
-        setSubTabAction('live');
-        setPreviewUrl(null);
-      }
-    }} 
-    className={`
-      flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2
-      ${isLocked ? 'text-[#A39584]/50' : (subTabAction === 'live' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]')}
-    `}
-  >
-    {isLocked && (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
-        <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
-      </svg>
-    )}
-    Live Snap
-  </button>
+  onClick={() => {
+   if (new Date() < liveStartDate) {
+      showToast("LIVE SNAP AKAN DIBUKA PADA 08.08.2026", "error");
+    } 
+    // 2. Cek jika sudah lepas tarikh
+    else if (new Date() > liveEndDate) {
+      showToast("LIVE SNAP SUDAH DITUTUP", "error");
+    } 
+    // 3. Jika dalam tempoh masa, benarkan akses
+    else {
+      setSubTabAction('live');
+      setPreviewUrl(null);
+    }
+  }} 
+  className={`
+    flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2
+    ${isLiveLocked ? 'text-[#A39584]/50' : (subTabAction === 'live' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]')}
+  `}
+>
+  {isLiveLocked && (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
+      <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
+    </svg>
+  )}
+  Live Snap
+</button>
 </div>
 {subTabAction === 'rsvp' ? (
-  hasSubmittedRsvp ? (
+  hasSubmittedRsvp || isRsvpLocked ? (
     // Paparan Success
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -956,11 +1019,12 @@ return (
   </div>
 
       <div className="space-y-2">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
-         Terima Kasih {nama}!
-        </h3>
+<h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
+  Terima Kasih{nama ? <><br />{nama}!</> : "!"}
+</h3>
 <p className="text-[9px] uppercase tracking-[0.2em] text-[#4A443F]/80 leading-relaxed text-center whitespace-pre-line">
-  {randomMessage}
+  {isRsvpLocked ? `${randomMessageRSVP}` :   `${randomMessage}`}
+
 </p>
 </div>
 
@@ -1084,6 +1148,45 @@ return (
   )
 
 ) : (
+    isLiveLocked ? (
+    // Paparan Success
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      className="relative w-full max-w-[300px] mx-auto my-12"
+    >
+      {/* Glass Container */}
+      <div className="bg-white/20 backdrop-blur-lg border border-white/40 shadow-[0_8px_32px_rgba(74,68,63,0.1)] rounded-[2.5rem] p-8 text-center">
+
+        <div className="flex flex-col items-center justify-center space-y-6">
+
+<div className="w-12 h-12 border border-[#D6C7B5] rounded-full flex items-center justify-center">
+    {/* <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A443F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg> */}
+        <img
+    src="/image/52.png"
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-130"
+  />
+  </div>
+
+      <div className="space-y-2">
+<h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
+  Terima Kasih{nama ? <><br />{nama}!</> : "!"}
+</h3>
+<p className="text-[9px] uppercase tracking-[0.2em] text-[#4A443F]/80 leading-relaxed text-center whitespace-pre-line">
+  {isLiveLocked ? `${randomMessageRSVP}` :   `${randomMessage}`}
+
+</p>
+</div>
+
+    </div>
+  </div>
+</motion.div>
+  ) : (
+    // Form asal anda
+    
     <form onSubmit={(e) => handleSubmit(e, 'live')} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
 
 <div className="space-y-8 animate-in fade-in duration-700">
@@ -1188,7 +1291,7 @@ return (
   </div>
 </div>
   </form>
-
+)
 )}
   </motion.div>
 </motion.section>
@@ -1449,7 +1552,7 @@ return (
   animate={{ opacity: 1 }}
   className="columns-2 gap-4 pt-4 space-y-4 px-2"
 >
-  {data.filter(item => item.type === 'rsvp').map((item, index) => (
+  {data.filter(item => item.type === 'rsvp'&&item.message !== '').map((item, index) => (
    <motion.div
   key={item.id}
   layoutId={`card-${item.id}`}
@@ -1753,42 +1856,16 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Aimi Najwa
+            Aizat
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Perempuan
+            Abang Pengantin<br/>Perempuan
           </span>
         </button>
 
         {/* Butang 2: Zulhilmi */}
         <button 
-          onClick={() => window.open('https://wa.me/60177117852', '_blank')}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Zulhilmi
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Lelaki
-          </span>
-        </button>
-
-        {/* Butang 3: Abd Raof */}
-        <button 
-          onClick={() => window.open('https://wa.me/60123456789', '_blank')}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Abd Raof
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Bapa Pengantin<br/>Perempuan
-          </span>
-        </button>
-
-        {/* Butang 4: Abdul Latiff */}
-        <button 
-          onClick={() => window.open('https://wa.me/60123456789', '_blank')}
+          onClick={() => window.open('https://wa.me/+60172671343', '_blank')}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
@@ -1796,6 +1873,32 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
             Bapa Pengantin<br/>Lelaki
+          </span>
+        </button>
+
+        {/* Butang 3: Abd Raof */}
+        <button 
+          onClick={() => window.open('https://wa.me/+601154110765', '_blank')}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ainul Sofia
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Adik Pengantin<br/>Perempuan
+          </span>
+        </button>
+
+        {/* Butang 4: Abdul Latiff */}
+        <button 
+          onClick={() => window.open('https://wa.me/+60127527587', '_blank')}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ahmad Tarmidzi
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Abang Pengantin<br/>Lelaki
           </span>
         </button>
 
@@ -1824,42 +1927,16 @@ onClick={() => window.location.href = 'tel:+60163799397'}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Aimi Najwa
+            Aizat
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Perempuan
+            Abang Pengantin<br/>Perempuan
           </span>
         </button>
 
         {/* Butang 2: Zulhilmi */}
         <button 
-onClick={() => window.location.href = 'tel:+60177117852'}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Zulhilmi
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Lelaki
-          </span>
-        </button>
-
-        {/* Butang 3: Abd Raof */}
-        <button 
-onClick={() => window.location.href = 'tel:+60163799397'}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Abd Raof
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Bapa Pengantin<br/>Perempuan
-          </span>
-        </button>
-
-        {/* Butang 4: Abdul Latiff */}
-        <button 
-onClick={() => window.location.href = 'tel:+60163799397'}
+onClick={() => window.location.href = 'tel:+60172671343'}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
@@ -1867,6 +1944,32 @@ onClick={() => window.location.href = 'tel:+60163799397'}
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
             Bapa Pengantin<br/>Lelaki
+          </span>
+        </button>
+
+        {/* Butang 3: Abd Raof */}
+        <button 
+onClick={() => window.location.href = 'tel:+601154110765'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ainul Sofia
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Adik Pengantin<br/>Perempuan
+          </span>
+        </button>
+
+        {/* Butang 4: Abdul Latiff */}
+        <button 
+onClick={() => window.location.href = 'tel:+60127527587'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ahmad Tarmidzi
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Abang Pengantin<br/>Lelaki
           </span>
         </button>
 
