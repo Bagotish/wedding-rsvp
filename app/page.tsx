@@ -1763,7 +1763,10 @@ return (
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
   >
     {/* Box Modal: Style disesuaikan */}
-    <div 
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+
       onClick={(e) => e.stopPropagation()}
       className="relative w-full max-w-[280px] p-8 bg-white/60 backdrop-blur-3xl border border-white/100 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)] text-center flex flex-col items-center"
     >
@@ -1795,7 +1798,7 @@ return (
           {selectedWish.name}
         </h4>
       </div>
-    </div>
+    </motion.div>
   </div>
 )}
 {isOpen && (
@@ -1806,7 +1809,9 @@ return (
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
   >
     {/* Box Modal: Copy sebijik style Nav kau */}
-    <div 
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       onClick={(e) => e.stopPropagation()} 
 className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"    >
       {/* Tajuk: Ikut style text 'Inactive' kau tapi center */}
@@ -1832,7 +1837,7 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
 
         
       </div>
-    </div>
+    </motion.div>
   </div>
 )}
 {isOpen1 && (
@@ -1840,7 +1845,9 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
     onClick={() => setIsOpen1(false)} 
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
   >
-    <div 
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       onClick={(e) => e.stopPropagation()} 
       className="w-full max-w-[320px] p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)]"
     >
@@ -1903,7 +1910,7 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
         </button>
 
       </div>
-    </div>
+    </motion.div>
   </div>
 )}
 {isOpen2 && (
@@ -1911,7 +1918,9 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
     onClick={() => setIsOpen2(false)} 
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
   >
-    <div 
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       onClick={(e) => e.stopPropagation()} 
       className="w-full max-w-[320px] p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)]"
     >
@@ -1974,7 +1983,7 @@ onClick={() => window.location.href = 'tel:+60127527587'}
         </button>
 
       </div>
-    </div>
+    </motion.div>
   </div>
 )}
 {/* Modal Calendar: Seiras dengan style Location Modal kau */}
@@ -1984,7 +1993,9 @@ onClick={() => window.location.href = 'tel:+60127527587'}
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500 animate-in fade-in"
   >
     {/* Box Modal: Glassmorphism container */}
-    <div 
+    <motion.div 
+     initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       onClick={(e) => e.stopPropagation()} 
       className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/60 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"
     >
@@ -2010,7 +2021,7 @@ onClick={() => window.location.href = 'tel:+60127527587'}
           Apple / Outlook
         </button>
       </div>
-    </div>
+    </motion.div>
   </div>
 )}
 {selectedImage && (
