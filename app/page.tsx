@@ -1889,7 +1889,7 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Ainul Sofia
+            Ainul Sufiah
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
             Adik Pengantin<br/>Perempuan
@@ -1962,7 +1962,7 @@ onClick={() => window.location.href = 'tel:+601154110765'}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Ainul Sofia
+            Ainul Sufiah
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
             Adik Pengantin<br/>Perempuan
