@@ -685,8 +685,8 @@ return (
           src="/image/85.png" className="absolute bottom-[75%] left-[63%] w-28 z-20 w-[90px]"
         />
                         <motion.img 
-          onClick={() => setSelectedImage("/image/66.png")}
-          src="/image/66.png" className="absolute bottom-[80%] left-[27%] w-28 z-20 w-[90px]"
+          onClick={() => setSelectedImage("/image/87.png")}
+          src="/image/87.png" className="absolute bottom-[80%] left-[27%] w-28 z-20 w-[90px]"
         />
                  <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -1574,7 +1574,7 @@ return (
     {/* Message */}
     <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 
                   break-words w-full overflow-hidden whitespace-pre-wrap">
-      "{item.message}"
+      {item.message}
     </p>
 
     {/* Divider */}
@@ -1782,7 +1782,7 @@ return (
       {/* Message: Dengan Scrollbar */}
       <div className="w-full max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
         <p className="text-[15px] text-[#4A443F] leading-relaxed font-serif italic break-words">
-          "{selectedWish.message || "-"}"
+          {selectedWish.message || "-"}
         </p>
       </div>
 
@@ -1859,14 +1859,14 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
         
         {/* Butang 1: Aimi Najwa */}
         <button 
-          onClick={() => window.open('https://wa.me/+60163799397', '_blank')}
+          onClick={() => window.open('https://wa.me/+60104071970', '_blank')}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Aizat
+            Abd Raof
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Abang Pengantin<br/>Perempuan
+            Bapa Pengantin<br/>Perempuan
           </span>
         </button>
 
@@ -1885,14 +1885,14 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
 
         {/* Butang 3: Abd Raof */}
         <button 
-          onClick={() => window.open('https://wa.me/+601154110765', '_blank')}
+          onClick={() => window.open('https://wa.me/+601137139869', '_blank')}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Ainul Sufiah
+            Aizat Ikmal
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Adik Pengantin<br/>Perempuan
+            Abang Pengantin<br/>Perempuan
           </span>
         </button>
 
@@ -1908,7 +1908,17 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
             Abang Pengantin<br/>Lelaki
           </span>
         </button>
-
+ <button 
+          onClick={() => window.open('https://wa.me/+601154110765', '_blank')}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ainul Sufiah
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Adik Pengantin<br/>Perempuan
+          </span>
+        </button>
       </div>
     </motion.div>
   </div>
@@ -1932,14 +1942,14 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
         
         {/* Butang 1: Aimi Najwa */}
         <button 
-onClick={() => window.location.href = 'tel:+60163799397'}
+          onClick={() => window.location.href = 'tel:+60104071970'}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Aizat
+            Abd Raof
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Abang Pengantin<br/>Perempuan
+            Bapa Pengantin<br/>Perempuan
           </span>
         </button>
 
@@ -1957,15 +1967,15 @@ onClick={() => window.location.href = 'tel:+60172671343'}
         </button>
 
         {/* Butang 3: Abd Raof */}
-        <button 
-onClick={() => window.location.href = 'tel:+601154110765'}
+<button 
+onClick={() => window.location.href = 'tel:+60163799397'}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Ainul Sufiah
+            Aizat Ikmal
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Adik Pengantin<br/>Perempuan
+            Abang Pengantin<br/>Perempuan
           </span>
         </button>
 
@@ -1979,6 +1989,17 @@ onClick={() => window.location.href = 'tel:+60127527587'}
           </span>
           <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
             Abang Pengantin<br/>Lelaki
+          </span>
+        </button>
+        <button 
+onClick={() => window.location.href = 'tel:+601154110765'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ainul Sufiah
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Adik Pengantin<br/>Perempuan
           </span>
         </button>
 
