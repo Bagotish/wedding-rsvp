@@ -41,7 +41,7 @@ const [subTabAction, setSubTabAction] = useState<'rsvp' | 'live'>('rsvp');
   const [subTabRolls, setSubTabRolls] = useState<'wishes' | 'moments'>('wishes');
   const [isCoverOpen, setIsCoverOpen] = useState(true);
   const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
 const [selectedItem, setSelectedItem] = useState<any | null>(null);
@@ -227,17 +227,25 @@ const scrollToSection = (key: keyof typeof sectionRefs) => {
   }, 800);
 };
 const handleRestart = () => {
-  setIsCoverOpen(true);
+  // 1. Tunjukkan balik preloader
+  setIsPreloading(true); 
 
-  setActiveTab('info'); // penting
+  // 2. Reset semua state macam biasa
+  setIsCoverOpen(true);
+  setActiveTab('info');
   setPreviewUrl(null);
   setCapturedFile(null);
   setSelectedItem(null);
 
   scrollContainerRef.current?.scrollTo({
     top: 0,
-    behavior: 'instant', // tukar ke instant (lagi clean)
+    behavior: 'instant',
   });
+
+  // 3. Set timer untuk tutup balik preloader selepas 3 saat
+  setTimeout(() => {
+    setIsPreloading(false);
+  }, 3000); 
 };
 interface SnackbarProps {
   message: string;
@@ -278,8 +286,8 @@ const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
   setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
 };
 // Target date: 8 Ogos 2026
-// const targetDate = new Date('2026-01-01T00:00:00'); //test
-const targetDate = new Date('2026-08-08T00:00:00');
+const targetDate = new Date('2026-01-01T00:00:00'); //test
+// const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
 const now = new Date();
 
@@ -380,6 +388,82 @@ useEffect(() => {
 //   const randomIndex = Math.floor(Math.random() * thankYouMessages1.length);
 //   return thankYouMessages1[randomIndex];
 // }, []);
+
+// const [data, setData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef(null);
+  const PAGE_SIZE = 10;
+
+  // 1. Logic Fetching Data
+const fetchData = async (reset = false) => {
+  if (loading) return;
+  setLoading(true);
+
+  const from = reset ? 0 : page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  const typeFilter = subTabRolls === 'wishes' ? 'rsvp' : 'live';
+
+  const { data: results, error } = await supabase
+    .from('guests')
+    .select('*')
+    .eq('type', typeFilter)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (results) {
+    setData(prev => {
+      // 1. Gabungkan data lama dan baru
+      const combined = reset ? results : [...prev, ...results];
+      
+      // 2. Buang duplikasi menggunakan Map (Key unik adalah item.id)
+      const uniqueData = Array.from(new Map(combined.map(item => [item.id, item])).values());
+      
+      return uniqueData;
+    });
+    
+    setHasMore(results.length === PAGE_SIZE);
+  }
+  setLoading(false);
+};
+
+  // 2. Reset bila tukar Tab
+  useEffect(() => {
+    setPage(0);
+    setData([]);
+    fetchData(true);
+  }, [subTabRolls]);
+
+  // 3. Load next page bila 'page' berubah
+  useEffect(() => {
+    if (page > 0) fetchData(false);
+  }, [page]);
+
+  // 4. Observer untuk Infinite Scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { threshold: 1.0, rootMargin: '200px' }
+    );
+
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading]);
+const [isPreloading, setIsPreloading] = useState(true);
+
+// Kita buat dia loading secara automatik bila website dibuka
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setIsPreloading(false);
+  }, 3000); // 3 saat untuk pre-loader pertama
+
+  return () => clearTimeout(timer);
+}, []);
 return (
     <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
       
@@ -723,20 +807,20 @@ return (
       <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
  
   <motion.img 
-                   onClick={() => setSelectedImage("/image/80.png")}
-          src="/image/80.png" className="absolute top-[16%] left-[55%] w-32 z-20 w-[95px]"
+                   onClick={() => setSelectedImage("/image/95.png")}
+          src="/image/95.png" className="absolute top-[16%] left-[55%] w-32 z-20 w-[95px]"
         />
           <motion.img 
-                           onClick={() => setSelectedImage("/image/81.png")}
-          src="/image/81.png" className="absolute top-[16%] left-[25%] w-32 z-20 w-[95px]"
+                           onClick={() => setSelectedImage("/image/94.png")}
+          src="/image/94.png" className="absolute top-[16%] left-[25%] w-32 z-20 w-[95px]"
         />
         <motion.img 
-                         onClick={() => setSelectedImage("/image/72.png")}
-          src="/image/72.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[100px]"
+                         onClick={() => setSelectedImage("/image/97.png")}
+          src="/image/97.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[100px]"
         />
           <motion.img 
-                           onClick={() => setSelectedImage("/image/73.png")}
-          src="/image/73.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px]"
+                           onClick={() => setSelectedImage("/image/96.png")}
+          src="/image/96.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px]"
         />
                   <motion.img 
           src="/image/78.png" className="absolute top-[10%] left-[25%] w-32 z-20 w-[200px]"
@@ -751,10 +835,10 @@ return (
           src="/image/77.png" className="absolute top-[38%] left-[58%] w-32 z-20 w-[110px]"
         />
                  <motion.img 
-          src="/image/74.png" className="absolute top-[78%] left-[25%] w-32 z-20 w-[120px]"
+          src="/image/74.png" className="absolute top-[78%] left-[20%] w-32 z-20 w-[120px]"
         />
                  <motion.img 
-          src="/image/75.png" className="absolute top-[78%] left-[58%] w-32 z-20 w-[110px]"
+          src="/image/75.png" className="absolute top-[78%] left-[55%] w-32 z-20 w-[110px]"
         />
                          <motion.img 
           src="/image/86.png" className="absolute top-[46%] left-[40%] w-32 z-20 w-[90px]"
@@ -1410,14 +1494,14 @@ return (
   className="absolute bottom-[73%] left-[1%] w-[230px] z-20 -scale-x-100"
 />
  <motion.img 
- onClick={() => setSelectedImage("/image/70.png")}
+ onClick={() => setSelectedImage("/image/92.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/70.png" className="absolute bottom-[40%] left-[73%] w-28 z-20 w-[90px]"
+          src="/image/92.png" className="absolute bottom-[40%] left-[73%] w-28 z-20 w-[90px]"
         />
          <motion.img 
-          onClick={() => setSelectedImage("/image/69.png")}
+          onClick={() => setSelectedImage("/image/91.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/69.png" className="absolute bottom-[45%] left-[45%] w-28 z-20 w-[90px]"
+          src="/image/91.png" className="absolute bottom-[45%] left-[45%] w-28 z-20 w-[90px]"
         />
         {/* <motion.img 
           onClick={() => setSelectedImage("/image/32.png")}
@@ -1425,19 +1509,19 @@ return (
           src="/image/32.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px]"
         /> */}
                 <motion.img 
-          onClick={() => setSelectedImage("/image/84.png")}
+          onClick={() => setSelectedImage("/image/88.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/84.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px]"
+          src="/image/88.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px]"
         />
          <motion.img 
-                   onClick={() => setSelectedImage("/image/71.png")}
+                   onClick={() => setSelectedImage("/image/89.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/71.png" className="absolute bottom-[50%] left-[7%] w-28 z-20 w-[130px]"
+          src="/image/89.png" className="absolute bottom-[50%] left-[7%] w-28 z-20 w-[130px]"
         />
         <motion.img 
-         onClick={() => setSelectedImage("/image/31.png")}
+         onClick={() => setSelectedImage("/image/90.png")}
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/31.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[180px]"
+          src="/image/90.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[180px]"
         />
  <motion.img 
           src="/image/29.png" className="absolute bottom-[27%] left-[40%] w-28 z-20 w-[200px]"
@@ -1485,16 +1569,28 @@ return (
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/11.png" className="absolute bottom-[88%] left-[80%] w-28 z-20 w-[70px]"
         />
+        <div className="absolute -bottom-[1%] left-0 right-0 flex flex-col items-center">
+              <div className="flex flex-col items-center pt-12 pb-8">
+              <div className="flex items-center gap-4">
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+                <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
+                  2026 © AIMI NAJWA & ZULHILMI
+                </span>
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+              </div>
+              <span className="text-[5px] text-[#A39584]/30 uppercase tracking-[0.3em] mt-2">
+                Handcrafted with love by Aimi Najwa & Zulhilmi
+              </span>
+            </div>
+</div>
           </div>
 
     </motion.section>
    {/* --- SECTION Wishes & Moments --- */}
 <motion.section 
-  /* Guna min-h-[100dvh] untuk mobile yang lebih tepat */
   className="relative min-h-[100dvh] w-full flex flex-col items-center snap-start px-4 pt-20 pb-20 overflow-x-hidden"
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
-  /* Kurangkan amount kepada 0.1 supaya lebih mudah trigger */
   viewport={{ amount: 0.1, once: true }} 
   transition={{ duration: 0.5 }}
 >
@@ -1503,104 +1599,98 @@ return (
     whileInView={{ opacity: 1, y: 0 }}
     className="w-full max-w-md space-y-8"
   >
-
-    {/* Sub-tab Selector IG Style */}
+    {/* Tab Selector */}
     <div className="flex bg-[#F3EFE9] p-1 rounded-full border border-[#D6C7B5]/20 shadow-inner">
-  {/* Wishes Button */}
-  <button 
-    onClick={() => setSubTabRolls('wishes')} 
-    className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
-      subTabRolls === 'wishes' ? 'bg-white shadow-md text-[#4A443F]' : 'text-[#A39584]/60'
-    }`}
-  >
-    Wishes
-  </button>
-
-  {/* Moments Button dengan Lock Logic */}
-  <button 
-    onClick={() => {
-      if (isLocked) {
-        // Panggil snackbar/toast bagitahu tarikh
-        showToast("MOMENTS AKAN DIBUKA PADA 08.08.2026", "error");
-      } else {
-        setSubTabRolls('moments');
-      }
-    }} 
-    className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 ${
-      subTabRolls === 'moments' 
-        ? 'bg-white shadow-md text-[#4A443F]' 
-        : (isLocked ? 'text-[#A39584]/30' : 'text-[#A39584]/60')
-    }`}
-  >
-    {isLocked && (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-50">
-        <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
-      </svg>
-    )}
-    Moments
-  </button>
-</div>
+      <button 
+        onClick={() => setSubTabRolls('wishes')} 
+        className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+          subTabRolls === 'wishes' ? 'bg-white shadow-md text-[#4A443F]' : 'text-[#A39584]/60'
+        }`}
+      >
+        Wishes
+      </button>
+      <button 
+        onClick={() => {
+          if (isLocked) {
+            showToast("MOMENTS AKAN DIBUKA PADA 08.08.2026", "error");
+          } else {
+            setSubTabRolls('moments');
+          }
+        }} 
+        className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 ${
+          subTabRolls === 'moments' 
+            ? 'bg-white shadow-md text-[#4A443F]' 
+            : (isLocked ? 'text-[#A39584]/30' : 'text-[#A39584]/60')
+        }`}
+      >
+        {isLocked && (
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
+            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
+          </svg>
+        )}
+        Moments
+      </button>
+    </div>
 
     {/* Content Area */}
-    <div className="min-h-[400px]">
+    <div className="min-h-[400px] flex flex-col items-center">
       <AnimatePresence mode="wait">
-        {subTabRolls === 'wishes' ? (
-
-<motion.div 
-  key="wishes-canvas"
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  className="columns-2 gap-4 pt-4 space-y-4 px-2"
->
-  {data.filter(item => item.type === 'rsvp'&&item.message !== '').map((item, index) => (
-   <motion.div
-  key={item.id}
-  layoutId={`card-${item.id}`}
-  onClick={() => setSelectedWish(item)}          
-  initial={{ opacity: 0, y: 20 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true }}
-  transition={{ delay: index * 0.05 }}
-  className="break-inside-avoid inline-block w-full 
-             relative p-6
-             bg-white/60 backdrop-blur-3xl 
-             border border-white/40 
-             rounded-[35px] 
-             shadow-[0_20px_40px_rgba(74,68,63,0.08)]
-             text-center"
->
-  <div className="relative flex flex-col items-center">
-
-    {/* Message */}
-    <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 
-                  break-words w-full overflow-hidden whitespace-pre-wrap">
-      {item.message}
-    </p>
-
-    {/* Divider */}
-    <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
-
-    {/* Sender */}
-    <div className="flex flex-col items-center">
-      <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">
-        Sender
-      </span>
-      <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">
-        {item.name}
-      </h4>
-    </div>
-  </div>
-</motion.div>
-  ))}
-</motion.div> 
-) : (
-          /* --- VIEW 2: MOMENTS GRID (INSTAGRAM STYLE) --- */
+        {/* KEADAAN 1: TENGAH LOADING */}
+        {loading && data.length === 0 ? (
+          <motion.div
+            key="loading-state"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="py-20 flex flex-col items-center"
+          >
+            <motion.img 
+              src="image/93.png" 
+              className="w-16 h-auto opacity-80"
+              animate={{ 
+                scale: [1, 1.05, 1],
+                opacity: [0.4, 0.8, 0.4] 
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.4em] mt-6 italic">
+              Menyusun Memori...
+            </span>
+          </motion.div>
+        ) : subTabRolls === 'wishes' ? (
+          /* VIEW 1: WISHES */
+          <motion.div 
+            key="wishes-canvas"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="columns-2 gap-4 pt-4 space-y-4 px-2 w-full"
+          >
+            {data.filter(item => item.type === 'rsvp' && item.message !== "").map((item, index) => (
+              <motion.div
+                key={item.id}
+                layoutId={`card-${item.id}`}
+                onClick={() => setSelectedWish(item)}          
+                className="break-inside-avoid inline-block w-full relative p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.08)] text-center"
+              >
+                <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 break-words whitespace-pre-wrap">
+                  "{item.message}"
+                </p>
+                <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
+                <div className="flex flex-col items-center">
+                  <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">Sender</span>
+                  <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">{item.name}</h4>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div> 
+        ) : (
+          /* VIEW 2: MOMENTS GRID */
           <motion.div 
             key="moments-grid"
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
-            className="grid grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4"
+            className="grid grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4 w-full"
           >
             {data.filter(item => item.type === 'live').length > 0 ? (
               data.filter(item => item.type === 'live').map((item) => (
@@ -1608,24 +1698,14 @@ return (
                   key={item.id} 
                   className="relative aspect-square bg-[#F3EFE9] overflow-hidden cursor-pointer group"
                   onClick={() => setSelectedItem(item)}
-                  whileHover={{ opacity: 0.9 }}
                 >
                   {item.image_url ? (
-                    <Image 
-                      src={item.image_url} 
-                      alt="Moment" 
-                      fill 
-                      className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                    />
+                    <Image src={item.image_url} alt="Moment" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#E5E1DA]">
                       <span className="text-[8px] text-[#A39584]">No Image</span>
                     </div>
                   )}
-                  {/* Overlay Info on Hover */}
-                  <div className="absolute inset-0 bg-[#4A443F]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 text-center">
-                    <p className="text-[7px] font-black text-white uppercase tracking-widest truncate">{item.name}</p>
-                  </div>
                 </motion.div>
               ))
             ) : (
@@ -1634,14 +1714,41 @@ return (
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
 
-    {/* Bottom Spacer for Mobile Navigation */}
-    <div className="h-24" />
+      {/* --- Bagian Bawah: Sentinel + Copyright --- */}
+      <div ref={observerTarget} className="h-10 w-full" />
+
+      <div className="w-full flex flex-col items-center">
+        {loading && data.length > 0 ? (
+          /* Loading kecil untuk Infinite Scroll */
+          <motion.img 
+            src="image/93.png" 
+            className="w-10 h-auto opacity-50 py-10"
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        ) : (
+          !hasMore && data.length > 0 && (
+            /* Copyright apabila list dah habis */
+            <div className="flex flex-col items-center pt-12 pb-8">
+              <div className="flex items-center gap-4">
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+                <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
+                  2026 © AIMI NAJWA & ZULHILMI
+                </span>
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+              </div>
+              <span className="text-[5px] text-[#A39584]/30 uppercase tracking-[0.3em] mt-2">
+                Handcrafted with love by Aimi Najwa & Zulhilmi
+              </span>
+            </div>
+          )
+        )}
+      </div>
+    </div>
   </motion.div>
 </motion.section>
-
-  </div>
+    </div>
         {/* --- GLOBAL NAVIGATION --- */}
 {!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&&!isOpen2&&!selectedImage&& (
   <>
@@ -2065,6 +2172,50 @@ onClick={() => window.location.href = 'tel:+601154110765'}
       message={snackbar.message} 
       type={snackbar.type} 
     />
+    <AnimatePresence>
+  {isPreloading && (
+    <motion.div
+      key="preloader"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.8 } }}
+      className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-[#FCFAF7]"
+    >
+      <div className="flex flex-col items-center">
+        {/* Logo 93.png yang minimalis */}
+<motion.img
+  src="/image/93.png"
+  alt="Loading..."
+  className="w-20 h-auto mb-8"
+  animate={{ 
+    // Effect bernafas: Saiz membesar sikit & cahaya terang, 
+    // kemudian mengecil & malap sikit.
+    scale: [1, 1.05, 1], 
+    opacity: [0.3, 0.8, 0.3] 
+  }}
+  transition={{ 
+    duration: 3,           // 3 saat untuk satu kitaran nafas (slow = tenang)
+    repeat: Infinity,      // Ulang sampai abis
+    ease: "easeInOut"      // Mula dan henti dengan lembut
+  }}
+/>
+        
+        {/* Garisan loading halus di bawah logo */}
+        {/* <div className="mt-8 w-20 h-[1px] bg-[#989F81]/10 overflow-hidden relative">
+          <motion.div 
+            initial={{ x: "-100%" }}
+            animate={{ x: "100%" }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 bg-[#989F81]/40"
+          />
+        </div> */}
+        
+        {/* <p className="mt-4 text-[7px] text-[#989F81]/60 uppercase tracking-[0.6em]">
+          Memulakan Bingkisan
+        </p>  */}
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
     
   );
