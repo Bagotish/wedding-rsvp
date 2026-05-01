@@ -245,7 +245,7 @@ const handleRestart = () => {
   // 3. Set timer untuk tutup balik preloader selepas 3 saat
   setTimeout(() => {
     setIsPreloading(false);
-  }, 3000); 
+  }, 4000); 
 };
 interface SnackbarProps {
   message: string;
@@ -460,7 +460,7 @@ const [isPreloading, setIsPreloading] = useState(true);
 useEffect(() => {
   const timer = setTimeout(() => {
     setIsPreloading(false);
-  }, 6000); // 3 saat untuk pre-loader pertama
+  }, 4000); // 3 saat untuk pre-loader pertama
 
   return () => clearTimeout(timer);
 }, []);
@@ -1103,7 +1103,8 @@ return (
       </div>
 
       {/* --- BUTTON SAVE THE DATE --- */}
-<motion.a
+                {
+                !isRsvpLocked ? <motion.a
     onClick={() => setShowCalendarModal(true)}
   target="_blank"
   whileTap={{ scale: 0.95 }}
@@ -1116,7 +1117,7 @@ return (
   <span className="text-[8px] font-bold uppercase tracking-[0.3em] opacity-60 mt-1">
     08.08.2026
   </span>
-</motion.a>
+</motion.a> : null}
     </div>
   </div>
 </motion.div>
@@ -1579,7 +1580,7 @@ return (
               <div className="flex items-center gap-4">
                 <div className="h-[1px] w-8 bg-[#A39584]/20" />
                 <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
-                  2026 © AIMI NAJWA & ZULHILMI
+                  8.8.2026 © AIMI NAJWA & ZULHILMI
                 </span>
                 <div className="h-[1px] w-8 bg-[#A39584]/20" />
               </div>
@@ -1739,7 +1740,7 @@ return (
               <div className="flex items-center gap-4">
                 <div className="h-[1px] w-8 bg-[#A39584]/20" />
                 <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
-                  2026 © AIMI NAJWA & ZULHILMI
+                  8.8.2026 © AIMI NAJWA & ZULHILMI
                 </span>
                 <div className="h-[1px] w-8 bg-[#A39584]/20" />
               </div>
