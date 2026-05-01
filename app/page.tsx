@@ -460,7 +460,7 @@ const [isPreloading, setIsPreloading] = useState(true);
 useEffect(() => {
   const timer = setTimeout(() => {
     setIsPreloading(false);
-  }, 3000); // 3 saat untuk pre-loader pertama
+  }, 6000); // 3 saat untuk pre-loader pertama
 
   return () => clearTimeout(timer);
 }, []);
@@ -816,32 +816,32 @@ return (
         />
         <motion.img 
                          onClick={() => setSelectedImage("/image/97.png")}
-          src="/image/97.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[100px]"
+          src="/image/97.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[95px]"
         />
           <motion.img 
                            onClick={() => setSelectedImage("/image/96.png")}
           src="/image/96.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px]"
         />
                   <motion.img 
-          src="/image/78.png" className="absolute top-[10%] left-[25%] w-32 z-20 w-[200px]"
+          src="/image/78.png" className="absolute top-[10%] left-[28%] w-32 z-20 w-[180px]"
         />
                           <motion.img 
-          src="/image/79.png" className="absolute top-[50%] left-[35%] w-32 z-20 w-[140px]"
+          src="/image/79.png" className="absolute top-[50%] left-[38%] w-32 z-20 w-[120px]"
         />
          <motion.img 
-          src="/image/76.png" className="absolute top-[38%] left-[25%] w-32 z-20 w-[100px]"
+          src="/image/76.png" className="absolute top-[38%] left-[26%] w-32 z-20 w-[80px]"
         />
                  <motion.img 
-          src="/image/77.png" className="absolute top-[38%] left-[58%] w-32 z-20 w-[110px]"
+          src="/image/77.png" className="absolute top-[38%] left-[58%] w-32 z-20 w-[90px]"
         />
                  <motion.img 
-          src="/image/74.png" className="absolute top-[78%] left-[20%] w-32 z-20 w-[120px]"
+          src="/image/74.png" className="absolute top-[78%] left-[23%] w-32 z-20 w-[100px]"
         />
                  <motion.img 
-          src="/image/75.png" className="absolute top-[78%] left-[55%] w-32 z-20 w-[110px]"
+          src="/image/75.png" className="absolute top-[78%] left-[58%] w-32 z-20 w-[90px]"
         />
                          <motion.img 
-          src="/image/86.png" className="absolute top-[46%] left-[40%] w-32 z-20 w-[90px]"
+          src="/image/86.png" className="absolute top-[46%] left-[45%] w-32 z-20 w-[70px]"
         />
                          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
@@ -1081,36 +1081,44 @@ return (
 {subTabAction === 'rsvp' ? (
   hasSubmittedRsvp || isRsvpLocked ? (
     // Paparan Success
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      className="relative w-full max-w-[300px] mx-auto my-12"
-    >
-      {/* Glass Container */}
-      <div className="bg-white/20 backdrop-blur-lg border border-white/40 shadow-[0_8px_32px_rgba(74,68,63,0.1)] rounded-[2.5rem] p-8 text-center">
-
-        <div className="flex flex-col items-center justify-center space-y-6">
-
-<div className="w-12 h-12 border border-[#D6C7B5] rounded-full flex items-center justify-center">
-    {/* <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A443F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 6L9 17l-5-5" />
-    </svg> */}
-        <img
-    src="/image/52.png"
-    alt="Main Invite"
-    className="w-full h-auto object-contain scale-130"
-  />
-  </div>
+<motion.div
+  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+  animate={{ opacity: 1, y: 0, scale: 1 }}
+  className="relative w-full max-w-[300px] mx-auto my-12"
+>
+  <div className="bg-white/20 backdrop-blur-lg border border-white/40 shadow-[0_8px_32px_rgba(74,68,63,0.1)] rounded-[2.5rem] p-8 text-center">
+    <div className="flex flex-col items-center justify-center space-y-6">
+      
+      <div className="w-12 h-12 border border-[#D6C7B5] rounded-full flex items-center justify-center overflow-hidden">
+        <img src="/image/52.png" alt="Icon" className="w-full h-auto object-contain scale-125" />
+      </div>
 
       <div className="space-y-2">
-<h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
-  Terima Kasih{nama ? <><br />{nama}!</> : "!"}
-</h3>
-<p className="text-[9px] uppercase tracking-[0.2em] text-[#4A443F]/80 leading-relaxed text-center whitespace-pre-line">
-  {isRsvpLocked ? `${randomMessageRSVP}` :   `${randomMessage}`}
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
+          Terima Kasih{nama ? <><br />{nama}!</> : "!"}
+        </h3>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-[#4A443F]/80 leading-relaxed text-center whitespace-pre-line">
+          {isRsvpLocked ? `${randomMessageRSVP}` : `${randomMessage}`}
+        </p>
+      </div>
 
-</p>
-</div>
+      {/* --- BUTTON SAVE THE DATE --- */}
+<motion.a
+        onClick={() => setShowCalendarModal(true)}
+  target="_blank"
+  whileTap={{ scale: 0.95 }}
+  className="mt-2 px-10 py-4 bg-[#4A443F] rounded-full flex flex-col items-center justify-center transition-all shadow-md group"
+>
+  {/* Baris 1 */}
+  <span className="text-[8px] font-bold uppercase tracking-[0.4em] text-[#FCFAF7]">
+    Save The Date
+  </span>
+  
+  {/* Baris 2 */}
+  <span className="text-[7px] font-medium tracking-[0.3em] text-[#FCFAF7]/60 mt-1">
+    08.08.2026
+  </span>
+</motion.a>
 
     </div>
   </div>
@@ -1654,7 +1662,7 @@ return (
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
             <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.4em] mt-6 italic">
-              Menyusun Memori...
+              Loading...
             </span>
           </motion.div>
         ) : subTabRolls === 'wishes' ? (
@@ -1673,7 +1681,7 @@ return (
                 className="break-inside-avoid inline-block w-full relative p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.08)] text-center"
               >
                 <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 break-words whitespace-pre-wrap">
-                  "{item.message}"
+                  {item.message}
                 </p>
                 <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
                 <div className="flex flex-col items-center">
@@ -1838,7 +1846,7 @@ return (
   
   {/* 1. Quote/Message: Gunakan font serif yang lebih lembut & saiz yang sedikit besar */}
   <p className="text-[13px] font-serif italic text-[#3d3834] leading-[1.6] mb-4 px-2">
-    "{selectedItem.message||"-"}"
+    {selectedItem.message||"-"}
   </p>
 
   {/* 2. Divider: Gunakan dot kecil atau garis yang lebih halus */}
@@ -2172,47 +2180,46 @@ onClick={() => window.location.href = 'tel:+601154110765'}
       message={snackbar.message} 
       type={snackbar.type} 
     />
-    <AnimatePresence>
+<AnimatePresence>
   {isPreloading && (
     <motion.div
       key="preloader"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.8 } }}
-      className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-[#FCFAF7]"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-[#FCFAF7]"
     >
-      <div className="flex flex-col items-center">
-        {/* Logo 93.png yang minimalis */}
-<motion.img
-  src="/image/93.png"
-  alt="Loading..."
-  className="w-20 h-auto mb-8"
-  animate={{ 
-    // Effect bernafas: Saiz membesar sikit & cahaya terang, 
-    // kemudian mengecil & malap sikit.
-    scale: [1, 1.05, 1], 
-    opacity: [0.3, 0.8, 0.3] 
-  }}
-  transition={{ 
-    duration: 3,           // 3 saat untuk satu kitaran nafas (slow = tenang)
-    repeat: Infinity,      // Ulang sampai abis
-    ease: "easeInOut"      // Mula dan henti dengan lembut
-  }}
-/>
-        
-        {/* Garisan loading halus di bawah logo */}
-        {/* <div className="mt-8 w-20 h-[1px] bg-[#989F81]/10 overflow-hidden relative">
-          <motion.div 
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 bg-[#989F81]/40"
-          />
-        </div> */}
-        
-        {/* <p className="mt-4 text-[7px] text-[#989F81]/60 uppercase tracking-[0.6em]">
-          Memulakan Bingkisan
-        </p>  */}
-      </div>
+      {/* Container Utama yang Bernafas */}
+      <motion.div 
+        className="flex flex-col items-center"
+        animate={{ 
+          scale: [1, 1.03, 1], 
+          opacity: [0.4, 0.9, 0.4] 
+        }}
+        transition={{ 
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut" 
+        }}
+      >
+        {/* 1. Logo 93.png */}
+        <img
+          src="/image/93.png"
+          alt="Aimi & Zulhilmi"
+          className="w-20 h-auto mb-10" // mb-10 untuk jarakkan dengan copyright
+        />
+
+        {/* 2. Copyright (Duduk sekali bawah logo) */}
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-4">
+            <span className="text-[7px] text-[#A39584] uppercase tracking-[0.5em] font-medium">
+              8.8.2026 © AIMI NAJWA & ZULHILMI
+            </span>
+          </div>
+          <span className="text-[5px] text-[#A39584]/40 uppercase tracking-[0.3em] mt-3">
+            Handcrafted with love by Aimi Najwa & Zulhilmi
+          </span>
+        </div>
+      </motion.div>
     </motion.div>
   )}
 </AnimatePresence>
