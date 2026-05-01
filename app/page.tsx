@@ -1758,24 +1758,31 @@ return (
         {/* --- GLOBAL NAVIGATION --- */}
 {!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&&!isOpen2&&!selectedImage&& (
   <>
-       <nav ref={navRef} className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center p-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-[200] pointer-events-auto max-w-[90vw] overflow-x-auto scrollbar-hide">
-<button
-  onClick={handleRestart}
-  className="
-    ml-1 p-2.5 rounded-full text-[#A39584] 
-    transition-all duration-500 group flex-shrink-0
-    hover:bg-gradient-to-tr hover:from-[#D6C7B5]/30 hover:to-white
-    hover:shadow-[0_0_15px_rgba(214,199,181,0.5)]
-    hover:scale-110
-  "
->
-  <RotateCcw 
-    size={16} 
-    className="group-hover:animate-spin-slow transition-all duration-500"
-  />
-</button>
+      <nav ref={navRef} className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center p-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-[200] pointer-events-auto max-w-[90vw]">
   
-  <div className="flex items-center gap-1"> {/* Tambah div wrapper untuk list button */}
+  {/* Butang Restart - Sekarang dia akan duduk tetap di kiri */}
+  <button
+    onClick={handleRestart}
+    className="
+      ml-1 p-2.5 rounded-full text-[#A39584] 
+      transition-all duration-500 group flex-shrink-0
+      hover:bg-gradient-to-tr hover:from-[#D6C7B5]/30 hover:to-white
+      hover:shadow-[0_0_15px_rgba(214,199,181,0.5)]
+      hover:scale-110
+      z-10
+    "
+  >
+    <RotateCcw 
+      size={16} 
+      className="group-hover:animate-spin-slow transition-all duration-500"
+    />
+  </button>
+  
+  {/* Divider nipis (Optional) - Untuk nampak beza antara button static & scrollable */}
+  <div className="w-[1px] h-4 bg-[#A39584]/20 mx-1 flex-shrink-0" />
+
+  {/* Container untuk Tabs - Bahagian ini sahaja yang akan scroll */}
+  <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide flex-1 px-1">
     {[
       { id: 'info', label: 'Info' },
       { id: 'calendar', label: 'Calendar & Location' },
@@ -1785,7 +1792,7 @@ return (
     ].map((tab) => (
       <button
         key={tab.id}
-        data-tab={tab.id} // Tambah attribute ni untuk querySelector
+        data-tab={tab.id}
         onClick={() => scrollToSection(tab.id as any)}
         className={`
           px-4 py-2.5 rounded-full 
