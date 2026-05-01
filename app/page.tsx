@@ -1104,22 +1104,19 @@ return (
 
       {/* --- BUTTON SAVE THE DATE --- */}
 <motion.a
-        onClick={() => setShowCalendarModal(true)}
+    onClick={() => setShowCalendarModal(true)}
   target="_blank"
   whileTap={{ scale: 0.95 }}
-  className="mt-2 px-10 py-4 bg-[#4A443F] rounded-full flex flex-col items-center justify-center transition-all shadow-md group"
+  className="mt-2 w-full px-8 py-4 bg-[#4A443F] text-[#FCFAF7] rounded-full flex flex-col items-center justify-center shadow-xl transition-all duration-500"
 >
-  {/* Baris 1 */}
-  <span className="text-[8px] font-bold uppercase tracking-[0.4em] text-[#FCFAF7]">
+  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
     Save The Date
   </span>
   
-  {/* Baris 2 */}
-  <span className="text-[7px] font-medium tracking-[0.3em] text-[#FCFAF7]/60 mt-1">
+  <span className="text-[8px] font-bold uppercase tracking-[0.3em] opacity-60 mt-1">
     08.08.2026
   </span>
 </motion.a>
-
     </div>
   </div>
 </motion.div>
