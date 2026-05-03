@@ -798,12 +798,38 @@ return (
         />
                 <motion.img 
                  onClick={() => setSelectedImage("/image/85.png")}
-          src="/image/85.png" className="absolute bottom-[75%] left-[63%] w-28 z-20 w-[90px]"
+          src="/image/85.png" 
+          className="absolute bottom-[75%] left-[63%] w-28 z-20 w-[90px] drop-shadow-lg"
+            // Menetapkan titik paku di atas tengah frame (seperti dalam sketsa)
+ style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
         />
-                        <motion.img 
-          onClick={() => setSelectedImage("/image/87.png")}
-          src="/image/87.png" className="absolute bottom-[80%] left-[27%] w-28 z-20 w-[90px]"
-        />
+<motion.img 
+  onClick={() => setSelectedImage("/image/87.png")}
+  src="/image/87.png" 
+  // 1. TAMBAH DROP-SHADOW DI SINI
+  // 'drop-shadow-lg' memberikan bayangan yang lembut dan nampak realistik.
+  className="absolute bottom-[80%] left-[27%] z-20 w-[90px] cursor-pointer touch-manipulation drop-shadow-lg"
+  
+  style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+
+/>
                  <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
@@ -840,19 +866,65 @@ return (
  
   <motion.img 
                    onClick={() => setSelectedImage("/image/95.png")}
-          src="/image/95.png" className="absolute top-[16%] left-[55%] w-32 z-20 w-[95px]"
+          src="/image/95.png" className="absolute top-[16%] left-[55%] w-32 z-20 w-[95px] drop-shadow-lg"
+           style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1.1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
         />
           <motion.img 
                            onClick={() => setSelectedImage("/image/94.png")}
-          src="/image/94.png" className="absolute top-[16%] left-[25%] w-32 z-20 w-[95px]"
+          src="/image/94.png" className="absolute top-[16%] left-[25%] w-32 z-20 w-[95px] drop-shadow-lg"
+           style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+    delay: 1,
+  }}
         />
         <motion.img 
                          onClick={() => setSelectedImage("/image/97.png")}
-          src="/image/97.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[95px]"
+          src="/image/97.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[95px] drop-shadow-lg"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+        delay: 0.5,
+  }}
         />
           <motion.img 
                            onClick={() => setSelectedImage("/image/96.png")}
-          src="/image/96.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px]"
+          src="/image/96.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px] drop-shadow-lg"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+        delay: 0.6,
+  }}
         />
                   <motion.img 
           src="/image/78.png" className="absolute top-[10%] left-[28%] w-32 z-20 w-[180px]"
@@ -1533,33 +1605,68 @@ return (
 />
  <motion.img 
  onClick={() => setSelectedImage("/image/92.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/92.png" className="absolute bottom-[40%] left-[73%] w-28 z-20 w-[90px]"
+          src="/image/92.png" className="absolute bottom-[40%] left-[73%] w-28 z-20 w-[90px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
         />
          <motion.img 
           onClick={() => setSelectedImage("/image/91.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/91.png" className="absolute bottom-[45%] left-[45%] w-28 z-20 w-[90px]"
+          src="/image/91.png" className="absolute bottom-[45%] left-[45%] w-28 z-20 w-[90px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 0.5, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
         />
-        {/* <motion.img 
-          onClick={() => setSelectedImage("/image/32.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/32.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px]"
-        /> */}
                 <motion.img 
           onClick={() => setSelectedImage("/image/88.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/88.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px]"
+          src="/image/88.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
         />
          <motion.img 
                    onClick={() => setSelectedImage("/image/89.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/89.png" className="absolute bottom-[50%] left-[7%] w-28 z-20 w-[130px]"
+          src="/image/89.png" className="absolute bottom-[50%] left-[7%] w-28 z-20 w-[130px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
         />
         <motion.img 
          onClick={() => setSelectedImage("/image/90.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/90.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[180px]"
+          src="/image/90.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[180px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
         />
  <motion.img 
           src="/image/29.png" className="absolute bottom-[27%] left-[40%] w-28 z-20 w-[200px]"
@@ -1567,15 +1674,21 @@ return (
          <motion.img 
           src="/image/45.png" className="absolute bottom-[17%] left-[45%] w-28 z-20 w-[180px]"
         />
-         {/* <motion.img 
-                  onClick={() => setSelectedImage("/image/33.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/33.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[130px]"
-        /> */}
                  <motion.img 
                   onClick={() => setSelectedImage("/image/82.png")}
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/82.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[130px]"
+          src="/image/82.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[130px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
         />
         <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
