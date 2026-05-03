@@ -3,36 +3,65 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-
+import { Play, Pause } from 'lucide-react';
 // WAJIB ADA: Takrifkan jenis props
 interface JooxPlayerProps {
   shouldPlay: boolean;
 }
 
 export default function JooxPlayer({ shouldPlay }: JooxPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
+ const [isPlaying, setIsPlaying] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // 1. INI KUNCI DIA: Bila 'shouldPlay' bertukar jadi true (lepas klik Enter)
-  // Kita terus paksa isPlaying jadi true.
+
   useEffect(() => {
     if (shouldPlay) {
+      // RESET: Hanya bila masuk balik dari Cover
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+      }
       setIsPlaying(true);
+    } else {
+      // STOP: Bila handleRestart dipicu
+      setIsPlaying(false);
     }
   }, [shouldPlay]);
 
-  // 2. Kemudian, logic audio ni akan jalan secara automatik
   useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        // play() sekarang akan berjaya sebab 'user interaction' dah berlaku pada butang Enter
-        audioRef.current.play().catch(err => {
-          console.log("Autoplay blocked by browser:", err);
-        });
-      } else {
-        audioRef.current.pause();
-      }
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const fadeStep = 0.05;
+    const fadeInterval = 50;
+
+    if (isPlaying) {
+      // --- FADE IN ---
+      // Kita tak reset currentTime kat sini supaya manual play/pause tak restart lagu
+      audio.play().catch(err => console.log("Autoplay blocked:", err));
+
+      const fadeIn = setInterval(() => {
+        if (audio.volume < 0.95) {
+          audio.volume = Math.min(1, audio.volume + fadeStep);
+        } else {
+          audio.volume = 1;
+          clearInterval(fadeIn);
+        }
+      }, fadeInterval);
+
+      return () => clearInterval(fadeIn);
+    } else {
+      const fadeOut = setInterval(() => {
+        if (audio.volume > 0.05) {
+          audio.volume = Math.max(0, audio.volume - fadeStep);
+        } else {
+          audio.volume = 0;
+          audio.pause();
+          clearInterval(fadeOut);
+        }
+      }, fadeInterval);
+
+      return () => clearInterval(fadeOut);
     }
   }, [isPlaying]);
   return (
@@ -96,15 +125,19 @@ export default function JooxPlayer({ shouldPlay }: JooxPlayerProps) {
               </span>
             </div>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsPlaying(!isPlaying);
-              }}
-              className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-[#4A443F] text-white rounded-full active:scale-90 shadow-md"
-            >
-              {isPlaying ? <span className="text-[9px]">II</span> : <span className="text-[9px] ml-0.5">▶</span>}
-            </button>
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    setIsPlaying(!isPlaying);
+  }}
+  className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-[#4A443F] text-white rounded-full active:scale-95 transition-transform shadow-md"
+>
+  {isPlaying ? (
+    <Pause size={10} fill="currentColor" />
+  ) : (
+    <Play size={10} fill="currentColor" className="ml-0.5" />
+  )}
+</button>
           </div>
         </motion.div>
       </motion.div>
