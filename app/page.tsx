@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
 import JooxPlayer from "./joox";
+import { animate } from "framer-motion";
 import { createClient } from '@supabase/supabase-js';
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -496,6 +497,78 @@ useEffect(() => {
 
   return () => clearTimeout(timer);
 }, []);
+const timerRef = useRef<number | null>(null);
+const interactionTimeoutRef = useRef<number | null>(null);
+
+// Fungsi Stop
+const stopAutoScroll = () => {
+  if (timerRef.current !== null) {
+    window.clearInterval(timerRef.current);
+    timerRef.current = null;
+  }
+};
+
+// Fungsi Start
+const startAutoScroll = () => {
+  stopAutoScroll();
+  timerRef.current = window.setInterval(() => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, clientHeight, scrollHeight } = scrollContainerRef.current;
+      let nextScroll = scrollTop + clientHeight;
+      
+      // Reset ke atas jika dah sampai bawah sekali
+      if (nextScroll >= scrollHeight - 10) nextScroll = 0;
+
+      scrollContainerRef.current.scrollTo({
+        top: nextScroll,
+        behavior: 'smooth'
+      });
+    }
+
+
+  }, 10000); // 5 saat setiap slide
+};
+
+// Pantau Interaction & Popout
+// Letakkan di dalam komponen, sebelum handleUserInteraction
+const isAnyModalOpen = selectedImage || isCoverOpen || isOpen || selectedWish || 
+                       isOpen1 || selectedItem || showCalendarModal || isOpen2;
+
+const handleUserInteraction = () => {
+  // Jika mana-maya modal buka, jangan buat apa-apa (biar auto-scroll kekal stop)
+  if (isAnyModalOpen) return; 
+
+  stopAutoScroll();
+  
+  if (interactionTimeoutRef.current !== null) {
+    window.clearTimeout(interactionTimeoutRef.current);
+  }
+
+  interactionTimeoutRef.current = window.setTimeout(() => {
+    // Check sekali lagi sebelum start
+    if (!isAnyModalOpen) {
+      startAutoScroll();
+    }
+  }, 1000); 
+};
+
+useEffect(() => {
+  if (isAnyModalOpen) {
+    stopAutoScroll();
+    if (interactionTimeoutRef.current) {
+      window.clearTimeout(interactionTimeoutRef.current);
+    }
+  } else {
+    // Jika semua modal tutup, mula balik auto-scroll
+    startAutoScroll();
+  }
+
+  return () => stopAutoScroll();
+}, [isAnyModalOpen]); 
+// useEffect akan trigger bila MANA-MANA status dalam isAnyModalOpen berubah
+
+
+
 return (
     <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
       
@@ -594,7 +667,11 @@ return (
   )}
 </AnimatePresence>
 
-      <main className="max-w-md mx-auto min-h-screen flex flex-col px-8 pt-16 pb-40">
+      <main 
+    // Kesan sentuhan atau klik user
+    onPointerDown={handleUserInteraction}
+    onWheel={handleUserInteraction} // Untuk user guna mouse wheel
+      className="max-w-md mx-auto min-h-screen flex flex-col px-8 pt-16 pb-40">
         
         {/* --- TAB 1: INFO --- */}
 <div 
@@ -2323,6 +2400,7 @@ onClick={() => window.location.href = 'tel:+601154110765'}
     />
   </div>
 )}
+
 {/* <JooxPlayer/> */}
 <JooxPlayer shouldPlay={!isCoverOpen} />
 <Snackbar 
