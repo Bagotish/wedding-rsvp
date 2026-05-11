@@ -526,7 +526,7 @@ const startAutoScroll = () => {
     }
 
 
-  }, 10000); // 5 saat setiap slide
+  }, 3000); // 5 saat setiap slide
 };
 
 // Pantau Interaction & Popout
