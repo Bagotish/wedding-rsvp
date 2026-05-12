@@ -493,7 +493,7 @@ const [isPreloading, setIsPreloading] = useState(true);
 useEffect(() => {
   const timer = setTimeout(() => {
     setIsPreloading(false);
-  }, 4000); // 3 saat untuk pre-loader pertama
+  }, 5000); // 3 saat untuk pre-loader pertama
 
   return () => clearTimeout(timer);
 }, []);
@@ -526,7 +526,7 @@ const startAutoScroll = () => {
     }
 
 
-  }, 3000); // 5 saat setiap slide
+  }, 5000); // 5 saat setiap slide
 };
 
 // Pantau Interaction & Popout
@@ -549,7 +549,7 @@ const handleUserInteraction = () => {
     if (!isAnyModalOpen) {
       startAutoScroll();
     }
-  }, 1000); 
+  }, 5000); 
 };
 
 useEffect(() => {
