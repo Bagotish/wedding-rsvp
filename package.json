@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
+    "browser-image-compression": "^2.0.2",
     "cloudinary": "^2.9.0",
     "framer-motion": "^12.34.5",
     "lucide-react": "^1.7.0",

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef,useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
-import JooxPlayer from "./joox";
+import JooxPlayer from "../joox";
 import { animate } from "framer-motion";
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
@@ -304,8 +304,8 @@ const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
   setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
 };
 // Target date: 8 Ogos 2026
-// const targetDate = new Date('2026-01-01T00:00:00'); //test
-const targetDate = new Date('2026-08-08T00:00:00');
+const targetDate = new Date('2026-01-01T00:00:00'); //test
+// const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
 const now = new Date();
 
@@ -315,8 +315,8 @@ const rsvpDeadline = new Date('2026-08-10T23:59:59');
 const isRsvpLocked = now > rsvpDeadline;
 
 // Live Snap: Buka 08/08/2026 hingga 09/08/2026
-// const liveStartDate = new Date('22026-01-01T00:00:00'); //test
-const liveStartDate = new Date('2026-08-08T00:00:00');
+const liveStartDate = new Date('22026-01-01T00:00:00'); //test
+// const liveStartDate = new Date('2026-08-08T00:00:00');
 const liveEndDate = new Date('2026-08-08T23:59:59');
 const isLiveLocked = now < liveStartDate || now > liveEndDate;
    const [showCalendarModal, setShowCalendarModal] = useState(false);
