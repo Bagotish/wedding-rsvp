@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef,useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
-import JooxPlayer from "../joox";
-import { animate } from "framer-motion";
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
-import { useSearchParams } from 'next/navigation';
+import { RotateCcw } from 'lucide-react';
+import JooxPlayer from '../joox';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,14 +53,8 @@ const [selectedWish, setSelectedWish] = useState<{ id: number | string; created_
 const [isOpen3, setIsOpen3] = useState(false);
 const [showLockNote, setShowLockNote] = useState(false);
 const options = ["Hadir", "Tidak Hadir"];
-  // Fetch Data
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: results } = await supabase.from('guests').select('*').order('created_at', { ascending: false });
-      if (results) setData(results);
-    };
-    fetchData();
-  }, [activeTab, subTabRolls]);
+  // Note: paginated `fetchData` below handles loading guests. Removed eager full-list fetch to avoid duplicate network calls.
+
 useEffect(() => {
   const container = scrollContainerRef.current;
   if (!container) return;
@@ -146,9 +138,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 
       imageUrl = fileData.secure_url;
     }
 
+    let insertedRows: any[] | null = null;
+
     if (type === 'rsvp') {
-      // Insert ke Supabase
-      const { error } = await supabase.from('guests').insert([{ 
+      // Insert ke Supabase and return inserted row
+      const { data: inserted, error } = await supabase.from('guests').insert([{ 
         name: formData.get('name'), 
         attendance: formData.get('attendance') || 'Hadir', 
         message: formData.get('message'), 
@@ -156,18 +150,20 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 
         type, 
         is_visible: true,
         pax: paxCount,
-      }]);
+      }]).select();
       if (error) throw error;
+      insertedRows = inserted || null;
     } else {
-      // Insert ke Supabase
-      const { error } = await supabase.from('guests').insert([{ 
+      // Insert ke Supabase and return inserted row
+      const { data: inserted, error } = await supabase.from('guests').insert([{ 
         name: formData.get('name'), 
         message: formData.get('message'), 
         image_url: imageUrl, 
         type, 
         is_visible: true,
-      }]);
+      }]).select();
       if (error) throw error;
+      insertedRows = inserted || null;
     }
 
     showToast("BERJAYA DIHANTAR");
@@ -176,9 +172,19 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 
       localStorage.setItem('rsvp_submitted', 'true');
       localStorage.setItem('rsvp_sender', name as string);
       setHasSubmittedRsvp(true);
+      // If currently viewing wishes, show the new wish immediately
+      if (subTabRolls === 'wishes' && insertedRows && insertedRows[0]) {
+        setData(prev => [insertedRows[0], ...prev]);
+        setHasMore(true);
+      }
     } else {
       localStorage.setItem('live_submitted', 'true');
       setHasSubmittedLive(true);
+      // If currently viewing moments, show the new moment immediately
+      if (subTabRolls === 'moments' && insertedRows && insertedRows[0]) {
+        setData(prev => [insertedRows[0], ...prev]);
+        setHasMore(true);
+      }
     }
 
     // --- RESET SEMUA ---
@@ -256,7 +262,7 @@ const handleRestart = () => {
 
   scrollContainerRef.current?.scrollTo({
     top: 0,
-    behavior: 'instant',
+    behavior: 'auto',
   });
 
   // 3. Set timer untuk tutup balik preloader selepas 3 saat
@@ -414,7 +420,7 @@ useEffect(() => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const observerTarget = useRef(null);
+  const observerTarget = useRef<HTMLDivElement | null>(null);
   const PAGE_SIZE = 10;
 
   // 1. Logic Fetching Data
@@ -426,27 +432,37 @@ const fetchData = async (reset = false) => {
   const to = from + PAGE_SIZE - 1;
   const typeFilter = subTabRolls === 'wishes' ? 'rsvp' : 'live';
 
-  const { data: results, error } = await supabase
-    .from('guests')
-    .select('*')
-    .eq('type', typeFilter)
-    .order('created_at', { ascending: false })
-    .range(from, to);
+  try {
+    const { data: results, error } = await supabase
+      .from('guests')
+      .select('*')
+      .eq('type', typeFilter)
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
-  if (results) {
-    setData(prev => {
-      // 1. Gabungkan data lama dan baru
-      const combined = reset ? results : [...prev, ...results];
-      
-      // 2. Buang duplikasi menggunakan Map (Key unik adalah item.id)
-      const uniqueData = Array.from(new Map(combined.map(item => [item.id, item])).values());
-      
-      return uniqueData;
-    });
-    
-    setHasMore(results.length === PAGE_SIZE);
+    if (error) {
+      console.error('fetchData error', error);
+      setHasMore(false);
+      return;
+    }
+
+    if (results) {
+      setData(prev => {
+        const combined = reset ? results : [...prev, ...results];
+        const uniqueData = Array.from(new Map(combined.map(item => [item.id, item])).values());
+        return uniqueData;
+      });
+
+      setHasMore(results.length === PAGE_SIZE);
+    } else {
+      setHasMore(false);
+    }
+  } catch (err) {
+    console.error('fetchData unexpected error', err);
+    setHasMore(false);
+  } finally {
+    setLoading(false);
   }
-  setLoading(false);
 };
 
   // 2. Reset bila tukar Tab
@@ -463,18 +479,24 @@ const fetchData = async (reset = false) => {
 
   // 4. Observer untuk Infinite Scroll
   useEffect(() => {
+    const target = observerTarget.current;
+    if (!target) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          setPage(prev => prev + 1);
-        }
+        entries.forEach((entry) => {
+          // Trigger for both wishes and moments
+          if (entry.isIntersecting && hasMore && !loading && (subTabRolls === 'moments' || subTabRolls === 'wishes')) {
+            setPage(prev => prev + 1);
+          }
+        });
       },
-      { threshold: 1.0, rootMargin: '200px' }
+      { threshold: 0.1, rootMargin: '300px' }
     );
 
-    if (observerTarget.current) observer.observe(observerTarget.current);
+    observer.observe(target);
     return () => observer.disconnect();
-  }, [hasMore, loading]);
+  }, [hasMore, loading, subTabRolls]);
 const [isPreloading, setIsPreloading] = useState(true);
 
 // Kita buat dia loading secara automatik bila website dibuka
@@ -485,6 +507,8 @@ useEffect(() => {
 
   return () => clearTimeout(timer);
 }, []);
+
+
 const timerRef = useRef<number | null>(null);
 const interactionTimeoutRef = useRef<number | null>(null);
 
@@ -558,32 +582,7 @@ useEffect(() => {
 
   return () => stopAutoScroll();
 }, [shouldStopAutoScroll]);
-useEffect(() => {
-  if (shouldStopAutoScroll) {
-    stopAutoScroll();
-    if (interactionTimeoutRef.current) {
-      window.clearTimeout(interactionTimeoutRef.current);
-    }
-  } else {
-    // Apabila keluar dari bahagian RSVP (atau modal tutup), mula balik auto-scroll
-    startAutoScroll();
-  }
-
-  return () => stopAutoScroll();
-}, [shouldStopAutoScroll]);
-useEffect(() => {
-  if (isAnyModalOpen) {
-    stopAutoScroll();
-    if (interactionTimeoutRef.current) {
-      window.clearTimeout(interactionTimeoutRef.current);
-    }
-  } else {
-    // Jika semua modal tutup, mula balik auto-scroll
-    startAutoScroll();
-  }
-
-  return () => stopAutoScroll();
-}, [isAnyModalOpen]); 
+// single effect above handles start/stop of auto-scroll based on `shouldStopAutoScroll`.
 
 useEffect(() => {
   const observer = new IntersectionObserver(
@@ -619,14 +618,23 @@ useEffect(() => {
     }
   }
 }, []);
-return (
-  <>
-    <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
-      
+const handleSelect = useCallback((item:any) => {
+  setSelectedItem(item);
+}, []);
+const handleTabChange = (newTab: 'wishes' | 'moments') => {
+  setData([]); // Kosongkan data dulu supaya animasi loading '93.png' keluar
+  setLoading(true);
+  setSubTabRolls(newTab);
+  // Panggil API semula...
+};
+  return (
+    <>
+      <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
+        
 
-      
-{/* --- 1. FRONT PAGE (SPLASH) --- */}
-<AnimatePresence>
+        
+      {/* --- 1. FRONT PAGE (SPLASH) --- */}
+      <AnimatePresence>
   
   {isCoverOpen && (
     <motion.div 
@@ -1914,119 +1922,135 @@ transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", e
       </button>
     </div>
     {/* Content Area */}
-    <div className="min-h-[400px] flex flex-col items-center">
-      <AnimatePresence mode="wait">
-        {/* KEADAAN 1: TENGAH LOADING */}
-        {loading && data.length === 0 ? (
+<div className="min-h-[400px] flex flex-col items-center">
+  <AnimatePresence mode="wait">
+    {/* KEADAAN 1: TENGAH LOADING (Sama untuk Wishes & Moments) */}
+    {loading && data.length === 0 ? (
+      <motion.div
+        key="loading-state"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="py-20 flex flex-col items-center"
+      >
+        <motion.img 
+          src="image/93.png" 
+          className="w-16 h-auto opacity-80"
+          animate={{ 
+            scale: [1, 1.05, 1],
+            opacity: [0.4, 0.8, 0.4] 
+          }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.4em] mt-6 italic">
+          Loading...
+        </span>
+      </motion.div>
+    ) : subTabRolls === 'wishes' ? (
+      /* VIEW 1: WISHES */
+      <motion.div 
+        key="wishes-canvas"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="columns-2 gap-4 pt-4 space-y-4 px-2 w-full"
+      >
+        {data.filter(item => item.type === 'rsvp' && item.message !== "").map((item) => (
           <motion.div
-            key="loading-state"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="py-20 flex flex-col items-center"
+            key={item.id}
+            layoutId={`card-${item.id}`}
+            onClick={() => setSelectedWish(item)}          
+            className="break-inside-avoid inline-block w-full relative p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.08)] text-center cursor-pointer"
           >
-            <motion.img 
-              src="image/93.png" 
-              className="w-16 h-auto opacity-80"
-              animate={{ 
-                scale: [1, 1.05, 1],
-                opacity: [0.4, 0.8, 0.4] 
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.4em] mt-6 italic">
-              Loading...
-            </span>
-          </motion.div>
-        ) : subTabRolls === 'wishes' ? (
-          /* VIEW 1: WISHES */
-          <motion.div 
-            key="wishes-canvas"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="columns-2 gap-4 pt-4 space-y-4 px-2 w-full"
-          >
-            {data.filter(item => item.type === 'rsvp' && item.message !== "").map((item, index) => (
-              <motion.div
-                key={item.id}
-                layoutId={`card-${item.id}`}
-                onClick={() => setSelectedWish(item)}          
-                className="break-inside-avoid inline-block w-full relative p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.08)] text-center"
-              >
-                <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 break-words whitespace-pre-wrap">
-                  {item.message}
-                </p>
-                <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
-                <div className="flex flex-col items-center">
-                  <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">Sender</span>
-                  <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">{item.name}</h4>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div> 
-        ) : (
-          /* VIEW 2: MOMENTS GRID */
-          <motion.div 
-            key="moments-grid"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            className="grid grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4 w-full"
-          >
-            {data.filter(item => item.type === 'live').length > 0 ? (
-              data.filter(item => item.type === 'live').map((item) => (
-                <motion.div 
-                  key={item.id} 
-                  className="relative aspect-square bg-[#F3EFE9] overflow-hidden cursor-pointer group"
-                  onClick={() => setSelectedItem(item)}
-                >
-                  {item.image_url ? (
-                    <Image src={item.image_url} alt="Moment" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-[#E5E1DA]">
-                      <span className="text-[8px] text-[#A39584]">No Image</span>
-                    </div>
-                  )}
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-3 py-20 text-center text-[9px] text-[#A39584] uppercase tracking-widest opacity-50 italic">Tiada momen dikongsi...</div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* --- Bagian Bawah: Sentinel + Copyright --- */}
-      <div ref={observerTarget} className="h-10 w-full" />
-
-      <div className="w-full flex flex-col items-center">
-        {loading && data.length > 0 ? (
-          /* Loading kecil untuk Infinite Scroll */
-          <motion.img 
-            src="image/93.png" 
-            className="w-10 h-auto opacity-50 py-10"
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        ) : (
-          !hasMore && data.length > 0 && (
-            /* Copyright apabila list dah habis */
-            <div className="flex flex-col items-center pt-12 pb-8">
-              <div className="flex items-center gap-4">
-                <div className="h-[1px] w-8 bg-[#A39584]/20" />
-                <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
-                  8.8.2026 © AIMI NAJWA & ZULHILMI
-                </span>
-                <div className="h-[1px] w-8 bg-[#A39584]/20" />
-              </div>
-              <span className="text-[5px] text-[#A39584]/30 uppercase tracking-[0.3em] mt-2">
-                Handcrafted with love by Aimi Najwa & Zulhilmi
-              </span>
+            <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 break-words whitespace-pre-wrap">
+              {item.message}
+            </p>
+            <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
+            <div className="flex flex-col items-center">
+              <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">Sender</span>
+              <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">{item.name}</h4>
             </div>
-          )
-        )}
-      </div>
-    </div>
+          </motion.div>
+        ))}
+      </motion.div> 
+    ) : (
+      /* VIEW 2: MOMENTS GRID (Sama ringkas seperti Wishes) */
+      <motion.div 
+        key="moments-grid"
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -10 }}
+        className="grid grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4 w-full"
+      >
+        {(() => {
+          const liveData = data.filter(item => item.type === 'live');
+          
+          if (liveData.length > 0) {
+            return liveData.map((item) => (
+              <motion.div 
+                key={item.id} 
+                className="relative aspect-square bg-[#F3EFE9] overflow-hidden cursor-pointer group"
+                onClick={() => {
+                  setSelectedItem(item);
+                  handleSelect(item);
+                }}
+              >
+                {item.image_url ? (
+                  <Image 
+                    src={item.image_url} 
+                    alt="Moment" 
+                    fill 
+                    className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#E5E1DA]">
+                    <span className="text-[8px] text-[#A39584]">No Image</span>
+                  </div>
+                )}
+              </motion.div>
+            ));
+          }
+
+          return (
+            <div className="col-span-3 py-20 text-center text-[9px] text-[#A39584] uppercase tracking-widest opacity-50 italic">
+              Tiada momen dikongsi...
+            </div>
+          );
+        })()}
+      </motion.div>
+    )}
+  </AnimatePresence>
+
+  {/* --- Bagian Bawah: Sentinel + Copyright --- */}
+  <div ref={observerTarget} className="h-10 w-full" />
+
+  <div className="w-full flex flex-col items-center">
+    {loading && data.length > 0 ? (
+      /* Loading kecil untuk Infinite Scroll (Tukar page/fetch data baru) */
+      <motion.img 
+        src="image/93.png" 
+        className="w-10 h-auto opacity-50 py-10"
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+    ) : (
+      !hasMore && data.length > 0 && (
+        /* Copyright apabila list dah habis */
+        <div className="flex flex-col items-center pt-12 pb-8">
+          <div className="flex items-center gap-4">
+            <div className="h-[1px] w-8 bg-[#A39584]/20" />
+            <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
+              8.8.2026 © AIMI NAJWA & ZULHILMI
+            </span>
+            <div className="h-[1px] w-8 bg-[#A39584]/20" />
+          </div>
+          <span className="text-[5px] text-[#A39584]/30 uppercase tracking-[0.3em] mt-2">
+            Handcrafted with love by Aimi Najwa & Zulhilmi
+          </span>
+        </div>
+      )
+    )}
+  </div>
+</div>
   </motion.div>
 </motion.section>
     </div>

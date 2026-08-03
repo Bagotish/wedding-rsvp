@@ -1,18 +1,41 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef,useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw } from 'lucide-react';
 import JooxPlayer from "./joox";
+import { animate } from "framer-motion";
 import { createClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
+import { useSearchParams } from 'next/navigation';
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
+const thankYouMessages = [
+  "Tika tirai disingkap, kehadiran anda menjadi saksi cinta ini. Terima kasih kerana sudi menjadi sebahagian daripada kanvas memori Kami.",
+  "Kehadiran anda melengkapkan hari bahagia ini. Terima kasih kerana sudi meraikan cinta Kami dengan doa dan restu yang tidak ternilai.",
+  "Setiap langkah yang anda atur untuk ke sini adalah hadiah yang paling indah. Terima kasih kerana sudi berkongsi rasa bahagia ini bersama Kami.",
+  "Jauh atau dekat langkah diatur, terima kasih kerana sudi hadir. Kehadiran kalian adalah penyempurna hari bahagia buat Kami Berdua.",
+  "Kami dengan rendah hati ingin mengucapkan ribuan terima kasih atas kehadiran anda. Semoga ikatan ini diberkati, seperti doa kalian buat kami.",
+  "Terima kasih kerana sudi meluangkan masa, meraikan cinta, dan berkongsi memori. Kehadiran anda amat bermakna buat Kami.",
+  "Bukan sekadar tetamu, anda adalah sebahagian daripada cerita Kami. Terima kasih kerana sudi hadir dan mendoakan kebahagiaan ini.",
+  "Pucuk pauh delima batu,\nTempat hinggap si rama-rama,\nDoa yang baik kami restu,\nTerima kasih hadir bersama.",
+  "Kalau ada sumur di ladang,\nBoleh kita menumpang mandi,\nTerima kasih sudi bertandang,\nMenyerikan majlis bahagia Aimi dan Zulhilmi.",
+  "Layang-layang terbang ke awan,\nPutus tali jatuh ke bumi,\nTerima kasih atas kehadiran,\nSudi meraikan hari bahagia Aimi dan Zulhilmi.",
+  "Perjalanan ini tidak menjanjikan jalan yang sentiasa rata, namun ia menjanjikan bahu yang sentiasa ada untuk bersandar.",
+];
+const thankYouMessages1 = [
+"Majlis telah melabuhkan tirai, namun kenangan tetap abadi. Terima kasih kerana sudi mengingati tarikh anniversary kami, 08.08.2026.",
+"Indah sungguh memori 08.08.2026. Terima kasih kerana menjadi sebahagian daripada perjalanan cinta kami.",
+"Majlis telah melabuhkan tirai. Terima kasih kerana terus mendoakan kebahagiaan kami.",
+"Jauh perjalanan, manis memori. Terima kasih kerana hadir dan mendoakan ikatan ini sentiasa dalam rahmat-Nya.",
+"Kami pulang dengan seribu kenangan, membawa doa-doa indah daripada kalian. Terima kasih atas segalanya.",
+"Satu hati, seribu memori.",
+];
 export default function WeddingApp() {
-  
 const [activeTab, setActiveTab] = useState<
   'info' | 'calendar' | 'rsvp' | 'contact'
 >('info');  
@@ -20,7 +43,7 @@ const [subTabAction, setSubTabAction] = useState<'rsvp' | 'live'>('rsvp');
   const [subTabRolls, setSubTabRolls] = useState<'wishes' | 'moments'>('wishes');
   const [isCoverOpen, setIsCoverOpen] = useState(true);
   const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
 const [selectedItem, setSelectedItem] = useState<any | null>(null);
@@ -72,6 +95,9 @@ useEffect(() => {
 
   return () => observer.disconnect();
 }, [isManualScroll]);
+const [nama, setnama] = useState("");
+
+
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 'live') => {
   e.preventDefault();
   setLoading(true);
@@ -79,18 +105,34 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 
   const form = e.currentTarget;
   const formData = new FormData(form);
   const name = formData.get('name');
-if (!name) {
+
+  if (!name) {
     showToast("SILA LENGKAPKAN", "error");
     setLoading(false);
     return;
   }
+  setnama(name as string);
+
   try {
     let imageUrl = '';
 
-    // Guna capturedFile yang kita set masa onChange tadi
     if (capturedFile) {
+      // Setup options untuk compress ke ~500KB
+      const options = {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+
+      let fileToUpload = capturedFile;
+      try {
+        fileToUpload = await imageCompression(capturedFile, options);
+      } catch (error) {
+        console.warn("Image compression failed, uploading original file instead.", error);
+      }
+
       const cloudData = new FormData();
-      cloudData.append('file', capturedFile);
+      cloudData.append('file', fileToUpload);
       cloudData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
       
       const res = await fetch(
@@ -103,41 +145,48 @@ if (!name) {
       const fileData = await res.json();
       imageUrl = fileData.secure_url;
     }
-if(type=='rsvp') {
-    // Insert ke Supabase
-    const { error } = await supabase.from('guests').insert([{ 
-      name: formData.get('name'), 
-      attendance: formData.get('attendance') || 'Hadir', 
-      message: formData.get('message'), 
-      image_url: imageUrl, // Url dari cloudinary
-      type, 
-      is_visible: true ,
-      pax: paxCount,
-    }]);
-        if (error) throw error;
 
-}else{
+    if (type === 'rsvp') {
       // Insert ke Supabase
-    const { error } = await supabase.from('guests').insert([{ 
-      name: formData.get('name'), 
-      message: formData.get('message'), 
-      image_url: imageUrl, // Url dari cloudinary
-      type, 
-      is_visible: true ,
-    }]);
-        if (error) throw error;
+      const { error } = await supabase.from('guests').insert([{ 
+        name: formData.get('name'), 
+        attendance: formData.get('attendance') || 'Hadir', 
+        message: formData.get('message'), 
+        image_url: imageUrl, 
+        type, 
+        is_visible: true,
+        pax: paxCount,
+      }]);
+      if (error) throw error;
+    } else {
+      // Insert ke Supabase
+      const { error } = await supabase.from('guests').insert([{ 
+        name: formData.get('name'), 
+        message: formData.get('message'), 
+        image_url: imageUrl, 
+        type, 
+        is_visible: true,
+      }]);
+      if (error) throw error;
+    }
 
-}
-showToast("BERJAYA DIHANTAR");
+    showToast("BERJAYA DIHANTAR");
+
+    if (type === 'rsvp') {
+      localStorage.setItem('rsvp_submitted', 'true');
+      localStorage.setItem('rsvp_sender', name as string);
+      setHasSubmittedRsvp(true);
+    } else {
+      localStorage.setItem('live_submitted', 'true');
+      setHasSubmittedLive(true);
+    }
 
     // --- RESET SEMUA ---
     form.reset();
-    if (setAttendance) setAttendance(''); // Check if function exists
+    if (setAttendance) setAttendance('');
     setPreviewUrl(null);
     setCapturedFile(null);
     
-    // Alihkan user ke tab result
-    // setActiveTab('rolls');
     setSubTabRolls(type === 'rsvp' ? 'wishes' : 'moments');
 
   } catch (err) { 
@@ -149,6 +198,7 @@ showToast("BERJAYA DIHANTAR");
 };
 const [isOpen, setIsOpen] = useState(false);
 const [isOpen1, setIsOpen1] = useState(false);
+const [isOpen2, setIsOpen2] = useState(false);
 
 const handleLocation = (type:any) => {
   const address = "Puteri Palmera Glass Hall, Alor Setar, Kedah, Malaysia";
@@ -194,17 +244,25 @@ const scrollToSection = (key: keyof typeof sectionRefs) => {
   }, 800);
 };
 const handleRestart = () => {
-  setIsCoverOpen(true);
+  // 1. Tunjukkan balik preloader
+  setIsPreloading(true); 
 
-  setActiveTab('info'); // penting
+  // 2. Reset semua state macam biasa
+  setIsCoverOpen(true);
+  setActiveTab('info');
   setPreviewUrl(null);
   setCapturedFile(null);
   setSelectedItem(null);
 
   scrollContainerRef.current?.scrollTo({
     top: 0,
-    behavior: 'instant', // tukar ke instant (lagi clean)
+    behavior: 'instant',
   });
+
+  // 3. Set timer untuk tutup balik preloader selepas 3 saat
+  setTimeout(() => {
+    setIsPreloading(false);
+  }, 4000); 
 };
 interface SnackbarProps {
   message: string;
@@ -221,16 +279,18 @@ const Snackbar: React.FC<SnackbarProps> = ({ message, type, isVisible }) => (
         exit={{ opacity: 0, y: 20, scale: 0.9 }}
         className="fixed top-10 left-0 right-0 z-[100] flex justify-center px-6 pointer-events-none"
       >
-        <div className={`
-          px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-md
-          ${type === 'success' ? 'bg-[#4A443F] text-white' : 'bg-red-900/90 text-white'}
-        `}>
-          {/* Icon simple */}
-          <div className={`w-2 h-2 rounded-full animate-pulse ${type === 'success' ? 'bg-green-400' : 'bg-red-400'}`} />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-            {message}
-          </span>
-        </div>
+<div className={`
+  px-8 py-4 rounded-2xl shadow-2xl flex items-center justify-center gap-3 backdrop-blur-md
+  ${type === 'success' ? 'bg-[#4A443F] text-white' : 'bg-red-900/90 text-white'}
+`}>
+  {/* Icon simple */}
+  <div className={`w-2 h-2 rounded-full animate-pulse ${type === 'success' ? 'bg-green-400' : 'bg-red-400'}`} />
+  
+  {/* Teks di tengah */}
+  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-center">
+    {message}
+  </span>
+</div>
       </motion.div>
     )}
   </AnimatePresence>
@@ -243,11 +303,27 @@ const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
   setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
 };
 // Target date: 8 Ogos 2026
+//Moment : Bukak Lepas 8/8/2026
+// const targetDate = new Date('2026-01-01T00:00:00'); //test
 const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
+const now = new Date();
 
+// RSVP: Tutup selepas 10/08/2026 jam 23:59:59
+const rsvpDeadline = new Date('2026-08-10T23:59:59');
+// const rsvpDeadline = new Date('2026-04-10T23:59:59'); //test
+const isRsvpLocked = now > rsvpDeadline;
 
-   const [showCalendarModal, setShowCalendarModal] = useState(false);
+// Live Snap: Buka 08/08/2026 hingga 09/08/2026
+// const liveStartDate = new Date('22026-01-01T00:00:00'); //test
+const liveStartDate = new Date('2026-08-08T00:00:00');
+const liveEndDate = new Date('2026-08-08T23:59:59');
+const isLiveLocked = now < liveStartDate || now > liveEndDate;
+
+const rsvpterimakasih = now >= new Date('2026-08-08T00:00:00');
+// const rsvpterimakasih = now > new Date('2026-01-01T00:00:00'); //test
+
+const [showCalendarModal, setShowCalendarModal] = useState(false);
 
 const addToCalendar = (type: 'google' | 'apple') => {
   const event = {
@@ -285,7 +361,270 @@ const addToCalendar = (type: 'google' | 'apple') => {
     document.body.removeChild(link);
   }
 };
-    return (
+const navRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  if (navRef.current) {
+    // Cari button yang aktif berdasarkan data-tab attribute
+    const activeElement = navRef.current.querySelector(`[data-tab="${activeTab}"]`);
+    
+    if (activeElement) {
+      activeElement.scrollIntoView({
+        behavior: 'smooth', // Animasi smooth
+        block: 'nearest',   // Tak perlu gerak vertical
+        inline: 'center',   // Tengah-tengahkan button dalam scrollable area
+      });
+    }
+  }
+}, [activeTab]);
+
+const [selectedImage, setSelectedImage] = useState<string | null>(null);
+const [hasSubmittedRsvp, setHasSubmittedRsvp] = useState(false);
+const [hasSubmittedLive, setHasSubmittedLive] = useState(false);
+const [randomMessage, setRandomMessage] = useState(thankYouMessages[0]);
+const [randomMessageRSVP, setRandomMessageRSVP] = useState(thankYouMessages[0]);
+
+// Check localStorage bila page load
+useEffect(() => {
+// localStorage.setItem('rsvp_submitted', 'false')
+// console.log('hehe', localStorage.getItem('rsvp_submitted'));
+  if (localStorage.getItem('rsvp_submitted') === 'true') setHasSubmittedRsvp(true);
+  if (localStorage.getItem('live_submitted') === 'true') setHasSubmittedLive(true);
+  const randomIndex = Math.floor(Math.random() * thankYouMessages.length);
+    setRandomMessage(thankYouMessages[randomIndex]);
+      const randomIndex1 = Math.floor(Math.random() * thankYouMessages1.length);
+    setRandomMessageRSVP(thankYouMessages1[randomIndex1]);
+
+  const storedName = localStorage.getItem('rsvp_sender')|| "";
+  if (storedName) {
+    setnama(storedName||"");
+  }
+}, []);
+
+// const randomMessage = useMemo(() => {
+//   const randomIndex = Math.floor(Math.random() * thankYouMessages.length);
+//   return thankYouMessages[randomIndex];
+// }, []); // [] bermaksud dia hanya 'random' sekali masa pertama kali load
+
+// const randomMessageRSVP = useMemo(() => {
+//   const randomIndex = Math.floor(Math.random() * thankYouMessages1.length);
+//   return thankYouMessages1[randomIndex];
+// }, []);
+
+// const [data, setData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef(null);
+  const PAGE_SIZE = 10;
+
+  // 1. Logic Fetching Data
+const fetchData = async (reset = false) => {
+  if (loading) return;
+  setLoading(true);
+
+  const from = reset ? 0 : page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  const typeFilter = subTabRolls === 'wishes' ? 'rsvp' : 'live';
+
+  const { data: results, error } = await supabase
+    .from('guests')
+    .select('*')
+    .eq('type', typeFilter)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (results) {
+    setData(prev => {
+      // 1. Gabungkan data lama dan baru
+      const combined = reset ? results : [...prev, ...results];
+      
+      // 2. Buang duplikasi menggunakan Map (Key unik adalah item.id)
+      const uniqueData = Array.from(new Map(combined.map(item => [item.id, item])).values());
+      
+      return uniqueData;
+    });
+    
+    setHasMore(results.length === PAGE_SIZE);
+  }
+  setLoading(false);
+};
+
+  // 2. Reset bila tukar Tab
+  useEffect(() => {
+    setPage(0);
+    setData([]);
+    fetchData(true);
+  }, [subTabRolls]);
+
+  // 3. Load next page bila 'page' berubah
+  useEffect(() => {
+    if (page > 0) fetchData(false);
+  }, [page]);
+
+  // 4. Observer untuk Infinite Scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { threshold: 1.0, rootMargin: '200px' }
+    );
+
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading]);
+const [isPreloading, setIsPreloading] = useState(true);
+
+// Kita buat dia loading secara automatik bila website dibuka
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setIsPreloading(false);
+  }, 5000); // 3 saat untuk pre-loader pertama
+
+  return () => clearTimeout(timer);
+}, []);
+const timerRef = useRef<number | null>(null);
+const interactionTimeoutRef = useRef<number | null>(null);
+
+// Fungsi Stop
+const stopAutoScroll = () => {
+  if (timerRef.current !== null) {
+    window.clearInterval(timerRef.current);
+    timerRef.current = null;
+  }
+};
+
+// Fungsi Start
+const startAutoScroll = () => {
+  stopAutoScroll();
+  timerRef.current = window.setInterval(() => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, clientHeight, scrollHeight } = scrollContainerRef.current;
+      let nextScroll = scrollTop + clientHeight;
+      
+      // Reset ke atas jika dah sampai bawah sekali
+      if (nextScroll >= scrollHeight - 10) nextScroll = 0;
+
+      scrollContainerRef.current.scrollTo({
+        top: nextScroll,
+        behavior: 'smooth'
+      });
+    }
+
+
+  }, 5000); // 5 saat setiap slide
+};
+
+// Pantau Interaction & Popout
+// Letakkan di dalam komponen, sebelum handleUserInteraction
+const isAnyModalOpen = selectedImage || isCoverOpen || isOpen || selectedWish || isOpen1 || selectedItem || showCalendarModal || isOpen2;
+
+// Gabungkan isRsvpVisible ke dalam syarat pemberhentian
+const rsvpRef = useRef<HTMLDivElement | null>(null);
+const [isRsvpVisible, setIsRsvpVisible] = useState(false);
+// Auto-scroll akan STOP jika modal BUKA ATAU sedang berada di RSVP
+const shouldStopAutoScroll = isRsvpVisible || isAnyModalOpen;
+
+const handleUserInteraction = () => {
+  if (shouldStopAutoScroll) return; 
+
+  stopAutoScroll();
+  
+  if (interactionTimeoutRef.current !== null) {
+    window.clearTimeout(interactionTimeoutRef.current);
+  }
+
+  interactionTimeoutRef.current = window.setTimeout(() => {
+    if (!shouldStopAutoScroll) {
+      startAutoScroll();
+    }
+  }, 5000); 
+};
+
+// Ubah dependency array useEffect kepada [shouldStopAutoScroll]
+useEffect(() => {
+  if (shouldStopAutoScroll) {
+    stopAutoScroll();
+    if (interactionTimeoutRef.current) {
+      window.clearTimeout(interactionTimeoutRef.current);
+    }
+  } else {
+    // Apabila keluar dari RSVP (atau modal tutup), jalan balik auto-scroll
+    startAutoScroll();
+  }
+
+  return () => stopAutoScroll();
+}, [shouldStopAutoScroll]);
+
+// useEffect(() => {
+//   if (shouldStopAutoScroll) {
+//     stopAutoScroll();
+//     if (interactionTimeoutRef.current) {
+//       window.clearTimeout(interactionTimeoutRef.current);
+//     }
+//   } else {
+//     // Apabila keluar dari bahagian RSVP (atau modal tutup), mula balik auto-scroll
+//     startAutoScroll();
+//   }
+
+//   return () => stopAutoScroll();
+// }, [shouldStopAutoScroll]);
+
+
+useEffect(() => {
+  if (isAnyModalOpen) {
+    stopAutoScroll();
+    if (interactionTimeoutRef.current) {
+      window.clearTimeout(interactionTimeoutRef.current);
+    }
+  } else {
+    // Jika semua modal tutup, mula balik auto-scroll
+    startAutoScroll();
+  }
+
+  return () => stopAutoScroll();
+}, [isAnyModalOpen]); 
+
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      // isIntersecting = true jika elemen RSVP kelihatan di skrin
+      setIsRsvpVisible(entry.isIntersecting);
+    },
+    {
+      threshold: 0.3, // Berhenti apabila 30% daripada bahagian RSVP kelihatan
+    }
+  );
+
+  if (rsvpRef.current) {
+    observer.observe(rsvpRef.current);
+  }
+
+  return () => {
+    if (rsvpRef.current) {
+      observer.unobserve(rsvpRef.current);
+    }
+  };
+}, []);
+
+useEffect(() => {
+  // Ambil query parameter dari URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  if(tabParam === 'rsvp') {
+   scrollToSection('rsvp');
+  if (now < liveStartDate) {
+    } else{
+        setSubTabAction('live');
+    }
+      }
+}, []);
+
+return (
+  <>
     <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
       
 
@@ -383,7 +722,11 @@ const addToCalendar = (type: 'google' | 'apple') => {
   )}
 </AnimatePresence>
 
-      <main className="max-w-md mx-auto min-h-screen flex flex-col px-8 pt-16 pb-40">
+      <main 
+    // Kesan sentuhan atau klik user
+    onPointerDown={handleUserInteraction}
+    onWheel={handleUserInteraction} // Untuk user guna mouse wheel
+      className="max-w-md mx-auto min-h-screen flex flex-col px-8 pt-16 pb-40">
         
         {/* --- TAB 1: INFO --- */}
 <div 
@@ -393,13 +736,13 @@ const addToCalendar = (type: 'google' | 'apple') => {
     {/* --- SECTION Burung --- */}
     <motion.section 
       ref={sectionRefs.info}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="flex flex-col items-center w-full max-w-[400px]">
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
         {/* Gambar 8, 9, 10 anda di sini */}
 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
 
@@ -412,7 +755,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
           <img 
             src="/image/8.png" 
             alt="Main Invite"
-            className="w-full h-auto object-contain scale-100" 
+            className="w-full h-auto object-contain scale-90" 
           />
         </motion.div>
           </motion.div>
@@ -426,7 +769,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
   <img 
     src="/image/9.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-100" 
+    className="w-full h-auto object-contain scale-75" 
   />
 </motion.div>
 
@@ -439,44 +782,43 @@ const addToCalendar = (type: 'google' | 'apple') => {
   <img 
     src="/image/10.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-60" 
+    className="w-full h-auto object-contain scale-55" 
   />
 </motion.div>
-
 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[15%] left-[10%] w-28 z-20 w-40"
+          src="/image/3.png" className="absolute bottom-[15%] left-[10%] w-28 z-20 w-[100px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-40"
+          src="/image/6.png" className="absolute bottom-[75%] left-[5%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[85%] left-[65%] w-28 z-20 w-30"
+          src="/image/3.png" className="absolute bottom-[80%] left-[80%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/11.png" className="absolute bottom-[15%] left-[70%] w-28 z-20 w-40"
+          src="/image/11.png" className="absolute bottom-[15%] left-[70%] w-28 z-20 w-[80px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[10%] left-[50%] w-28 z-20 w-10"
+          src="/image/12.png" className="absolute bottom-[8%] left-[40%] w-28 z-20 w-[80px]"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 w-6"
+          src="/image/12.png" className="absolute bottom-[40%] left-[82%] w-28 z-20 w-[60px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-1"
+          src="/image/12.png" className="absolute bottom-[80%] left-[45%] w-28 z-20 w-[70px]"
         />      
         </div>
       {/* Dekorasi tetap berada di dalam section supaya dia fade out sekali */}
@@ -484,243 +826,436 @@ const addToCalendar = (type: 'google' | 'apple') => {
 
     {/* --- SECTION Pintu --- */}
     <motion.section 
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="flex flex-col items-center w-full max-w-[400px]">
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
 <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
-  className="relative z-10 w-full mt-[-190px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+  className="relative z-10 w-full mt-[-50px] ml-5" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
   <img 
-    src="/image/34.png" 
+    src="/image/54.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-100" 
+    className="w-full h-auto object-contain scale-130" 
   />
 </motion.div>
 
 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[70%] left-[80%] w-28 z-20 w-40"
+          src="/image/3.png" className="absolute bottom-[70%] left-[80%] w-28 z-20 w-20"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[80%] left-[-5%] w-28 z-20 w-40"
+          src="/image/6.png" className="absolute bottom-[75%] left-[5%] w-28 z-20 w-20"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/4.png" className="absolute bottom-[10%] left-[60%] w-28 z-20 w-40"
+          src="/image/4.png" className="absolute bottom-[15%] left-[60%] w-28 z-20 w-[90px]"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/7.png" className="absolute bottom-[10%] left-[5%] w-28 z-20 w-50"
+          src="/image/7.png" className="absolute bottom-[15%] left-[15%] w-28 z-20 w-[90px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/16.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-30"
         />
-        <motion.img 
+        {/* <motion.img 
           src="/image/17.png" className="absolute bottom-[17%] left-[30%] w-28 z-20 w-60"
+        /> */}
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[30%] left-[10%] w-28 z-20 w-4"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[25%] left-[25%] w-28 z-20 w-4"
-        />
-        <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[20%] left-[60%] w-28 z-20 w-1"
+          src="/image/6.png" className="absolute bottom-[20%] left-[70%] w-28 z-20 w-1"
         />
              </div>
     </motion.section>
         {/* --- SECTION Sofa --- */}
-    <motion.section 
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+
+        <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-            <div className="flex flex-col items-center w-full max-w-[400px]">
-<motion.img 
-          src="/image/47.png" className="absolute bottom-[70%] left-[23%] w-28 z-20 w-90"
-        />
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
               <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
-  className="relative z-10 w-full mt-[-50px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+  className="relative z-10 w-full mt-[10px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
   <img 
     src="/image/35.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-140" 
+    className="w-full h-auto object-contain scale-110" 
   />
   <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/16.png" className="absolute bottom-[120%] left-[45%] w-28 z-20 w-[100px]"
+          src="/image/16.png" className="absolute bottom-[110%] left-[45%] w-28 z-20 w-[100px]"
         />
           <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[110%] left-[5%] w-28 z-20 w-[100px]"
+          src="/image/3.png" className="absolute bottom-[95%] left-[5%] w-28 z-20 w-[100px]"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[105%] left-[80%] w-28 z-20 w-[100px]"
+        />
+        <motion.img 
+          src="/image/48.png" className="absolute bottom-[57%] left-[57%] w-28 z-20 w-[145px]"
+        />
+                <motion.img 
+          src="/image/49.png" className="absolute bottom-[63%] left-[23%] w-28 z-20 w-[130px]"
+        />
+                <motion.img 
+                 onClick={() => setSelectedImage("/image/85.png")}
+          src="/image/85.png" 
+          className="absolute bottom-[75%] left-[63%] w-28 z-20 w-[90px] drop-shadow-lg"
+            // Menetapkan titik paku di atas tengah frame (seperti dalam sketsa)
+ style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
+        />
+<motion.img 
+  onClick={() => setSelectedImage("/image/87.png")}
+  src="/image/87.png" 
+  // 1. TAMBAH DROP-SHADOW DI SINI
+  // 'drop-shadow-lg' memberikan bayangan yang lembut dan nampak realistik.
+  className="absolute bottom-[80%] left-[27%] z-20 w-[90px] cursor-pointer touch-manipulation drop-shadow-lg"
+  
+  style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+
+/>
+                 <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/64.png" className="absolute bottom-[90%] left-[2%] w-28 z-20 w-[20px]"
+        />
+                 <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/64.png" className="absolute bottom-[105%] left-[85%] w-28 z-20 w-[20px]"
+        />
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/65.png" className="absolute bottom-[105%] left-[10%] w-28 z-20 w-[40px]"
+        />
+                <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/65.png" className="absolute bottom-[105%] left-[75%] w-28 z-20 w-[40px]"
+        />
+</motion.div>
+  </div>
+
+    </motion.section>
+            {/* --- SECTION MAMA ABAH --- */}
+    <motion.section 
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.5 }}
+      transition={{ duration: 0.8 }}
+    >
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
+ 
+  <motion.img 
+                   onClick={() => setSelectedImage("/image/95.png")}
+          src="/image/95.png" className="absolute top-[16%] left-[55%] w-32 z-20 w-[95px] drop-shadow-lg"
+           style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1.1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+        />
+          <motion.img 
+                           onClick={() => setSelectedImage("/image/94.png")}
+          src="/image/94.png" className="absolute top-[16%] left-[25%] w-32 z-20 w-[95px] drop-shadow-lg"
+           style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+    delay: 1,
+  }}
+        />
+        <motion.img 
+                         onClick={() => setSelectedImage("/image/97.png")}
+          src="/image/97.png" className="absolute top-[55%] left-[55%] w-32 z-20 w-[95px] drop-shadow-lg"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+        delay: 0.5,
+  }}
+        />
+          <motion.img 
+                           onClick={() => setSelectedImage("/image/96.png")}
+          src="/image/96.png" className="absolute top-[55%] left-[25%] w-32 z-20 w-[95px] drop-shadow-lg"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+        delay: 0.6,
+  }}
+        />
+                  <motion.img 
+          src="/image/78.png" className="absolute top-[10%] left-[28%] w-32 z-20 w-[180px]"
+        />
+                          <motion.img 
+          src="/image/79.png" className="absolute top-[50%] left-[38%] w-32 z-20 w-[120px]"
+        />
+         <motion.img 
+          src="/image/76.png" className="absolute top-[38%] left-[26%] w-32 z-20 w-[80px]"
+        />
+                 <motion.img 
+          src="/image/77.png" className="absolute top-[38%] left-[58%] w-32 z-20 w-[90px]"
+        />
+                 <motion.img 
+          src="/image/74.png" className="absolute top-[78%] left-[23%] w-32 z-20 w-[100px]"
+        />
+                 <motion.img 
+          src="/image/75.png" className="absolute top-[78%] left-[58%] w-32 z-20 w-[90px]"
+        />
+                         <motion.img 
+          src="/image/86.png" className="absolute top-[46%] left-[45%] w-32 z-20 w-[70px]"
+        />
+                         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/64.png" className="absolute bottom-[50%] left-[10%] w-28 z-20 w-[20px]"
+        />
+                                 <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/64.png" className="absolute bottom-[70%] left-[90%] w-28 z-20 w-[20px]"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[80%] left-[100%] w-28 z-20 w-[100px]"
+          src="/image/65.png" className="absolute bottom-[60%] left-[80%] w-28 z-20 w-[50px]"
         />
-        <motion.img 
+                 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[60%] left-[10%] w-28 z-20 w-[100px]"
+          src="/image/65.png" className="absolute bottom-[50%] left-[1%] w-28 z-20 w-[40px]"
         />
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }}
+  src="/image/2.png" 
+  className="absolute top-[10%] left-[-15%] w-32 rotate-[-15deg] w-50 z-[-10]" 
+/>
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+  src="/image/4.png" 
+  className="absolute top-[10%] right-[-5%] w-40 z-[-10]" // Guna w-40 (160px) atau w-64 (256px)
+/>
+
+        {/* Imej 5: Contoh Bunga Kanan Bawah */}
         <motion.img 
-          src="/image/48.png" className="absolute bottom-[65%] left-[60%] w-28 z-20 w-[200px]"
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/5.png" className="absolute bottom-[10%] right-[-10%] w-36 z-[-10] rotate-[10deg] w-40 "
         />
-                <motion.img 
-          src="/image/49.png" className="absolute bottom-[70%] left-[15%] w-28 z-20 w-[190px]"
-        />
-</motion.div>
+<motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }}
+  src="/image/7.png" 
+  className="absolute top-[70%] left-[-5%] w-40 rotate-[-15deg] z-[-10]"
+/>          
+
   </div>
 
     </motion.section>
             {/* --- SECTION Date and Location --- */}
  <motion.section 
       ref={sectionRefs.calendar}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-            <div className="flex flex-col items-center w-full max-w-[400px]">  
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
                <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
-  className="relative z-10 w-full mt-[-400px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+  className="relative z-10 w-full mt-[-80px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
   <img 
-    src="/image/37.png" 
+    src="/image/63.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-50" 
+    className="w-full h-auto object-contain scale-80" 
+        onClick={() => setShowCalendarModal(true)}
+
   />
 </motion.div>
 <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
-  className="relative z-10 w-full mt-[-50px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+  className="relative z-10 w-full mt-[-70px]"
 >
   <img 
-    src="/image/43.png" 
+    src="/image/56.png" 
     alt="Main Invite"
-    className="w-full h-auto object-contain scale-100" 
-    onClick={() => setShowCalendarModal(true)}
-
+    className="w-full h-auto object-contain scale-60" 
+  onClick={() => setIsOpen(true)}
   />
 </motion.div>
-<motion.img 
+{/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/36.png" className="absolute bottom-[80%] left-[10%] w-28 z-20 w-[150px]"
-        />
+        /> */}
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/42.png" className="absolute bottom-[51%] left-[60%] w-28 z-20 w-[100px]"
+          src="/image/42.png" className="absolute bottom-[52%] left-[61%] w-28 z-20 w-[90px]"
+        onClick={() => setShowCalendarModal(true)}
         />
-         <motion.img 
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/39.png" className="absolute bottom-[40%] left-[35%] w-28 z-20 w-[150px]"
               onClick={() => setShowCalendarModal(true)}
-        />
+        /> */}
                  {/* <motion.img 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/40.png" className="absolute bottom-[30%] left-[35%] w-28 z-20 w-[70px]"
           whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
   onClick={() => setIsOpen(true)}
         /> */}
-         <motion.img 
+         {/* <motion.img 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/50.png" className="absolute bottom-[26%] left-[37%] w-28 z-20 w-[150px]"
           whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
   onClick={() => setIsOpen(true)}
-        />
-        <motion.img 
+        /> */}
+        {/* <motion.img 
   // transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/41.png" 
           // className="absolute bottom-[25%] left-[23%] w-28 z-20 w-[300px]"
             className="absolute bottom-[25%] left-[23%] w-28 z-20 w-[300px] cursor-pointer"
   whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
   onClick={() => setIsOpen(true)}
+        /> */}
+        <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[100px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[150px]"
-        />
-        <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[80%] left-[70%] w-28 z-20 w-[150px]"
+          src="/image/6.png" className="absolute bottom-[80%] left-[70%] w-28 z-20 w-[100px]"
         />
                 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[30%] left-[80%] w-28 z-20 w-[130px]"
+          src="/image/3.png" className="absolute bottom-[30%] left-[80%] w-28 z-20 w-[70px]"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/38.png" className="absolute bottom-[70%] left-[80%] w-28 z-20 w-[100px]"
+          src="/image/38.png" className="absolute bottom-[70%] left-[75%] w-28 z-20 w-[100px]"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/7.png" className="absolute bottom-[10%] left-[10%] w-28 z-20 w-[130px]"
+          src="/image/7.png" className="absolute bottom-[15%] left-[5%] w-28 z-20 w-[90px]"
         />
                  <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[10%] left-[75%] w-28 z-20 w-[130px]"
+          src="/image/12.png" className="absolute bottom-[10%] left-[70%] w-28 z-20 w-[130px]"
         />
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/12.png" className="absolute bottom-[90%] left-[1%] w-28 z-20 w-[50px]"
         />
-<motion.img 
+{/* <motion.img 
   src="/image/44.png" 
   className="absolute bottom-[17%] left-[33%] z-20 w-[200px] cursor-pointer"
   whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
   onClick={() => setIsOpen(true)}
-/>
+/> */}
             </div>
 
     </motion.section>
 {/* --- SECTION RSVP --- */}
 <motion.section 
   ref={sectionRefs.rsvp}
-  className="relative min-h-screen w-full flex flex-col items-center snap-start px-6 pt-24 pb-32 bg-[#FBF9F7]"
+  className="relative min-h-screen w-full flex flex-col items-center snap-start px-6 pt-24 pb-32 bg-[#FBF9F7] overflow-x-hidden"
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
   viewport={{ amount: 0.3 }}
   transition={{ duration: 0.8 }}
+  onViewportEnter={() => setIsRsvpVisible(true)}
+  onViewportLeave={() => setIsRsvpVisible(false)}
 >
   <motion.div 
     initial={{ opacity: 0, y: 20 }} 
@@ -730,40 +1265,103 @@ const addToCalendar = (type: 'google' | 'apple') => {
     {/* Sub-tab Selector - More Modern & Rounded */}
     <div className="flex bg-[#F3EFE9] p-1 rounded-full border border-[#D6C7B5]/20 shadow-inner">
   
-  <button 
-    onClick={() => {
+<button 
+  onClick={() => {
+    if (isRsvpLocked) {
+      showToast("RSVP SUDAH DITUTUP", "error");
+    } else {
       setSubTabAction('rsvp');
       setPreviewUrl(null);
-    }} 
-    className={`flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${subTabAction === 'rsvp' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]'}`}
-  >
-    RSVP
-  </button>
+    }
+  }} 
+  className={`
+    flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all 
+    flex items-center justify-center gap-1.5 
+    ${isRsvpLocked ? 'text-[#A39584]/50' : (subTabAction === 'rsvp' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]')}
+  `}
+>
+  {isRsvpLocked && (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
+      <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
+    </svg>
+  )}
+  RSVP
+</button>
   
   <button 
-    onClick={() => {
-      if(isLocked) {
-        // Guna Snackbar/Toast yang kita buat tadi
-        showToast("LIVE SNAP AKAN DIBUKA PADA 08.08.2026", "error");
-      } else {
-        setSubTabAction('live');
-        setPreviewUrl(null);
-      }
-    }} 
-    className={`
-      flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2
-      ${isLocked ? 'text-[#A39584]/50' : (subTabAction === 'live' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]')}
-    `}
-  >
-    {isLocked && (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
-        <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
-      </svg>
-    )}
-    Live Snap
-  </button>
+  onClick={() => {
+   if (new Date() < liveStartDate) {
+      showToast("LIVE SNAP AKAN DIBUKA PADA 08.08.2026", "error");
+    } 
+    // 2. Cek jika sudah lepas tarikh
+    else if (new Date() > liveEndDate) {
+      showToast("LIVE SNAP SUDAH DITUTUP", "error");
+    } 
+    // 3. Jika dalam tempoh masa, benarkan akses
+    else {
+      setSubTabAction('live');
+      setPreviewUrl(null);
+    }
+  }} 
+  className={`
+    flex-1 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2
+    ${isLiveLocked ? 'text-[#A39584]/50' : (subTabAction === 'live' ? 'bg-white shadow-sm text-[#4A443F]' : 'text-[#A39584]')}
+  `}
+>
+  {isLiveLocked && (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
+      <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
+    </svg>
+  )}
+  Live Snap
+</button>
 </div>
 {subTabAction === 'rsvp' ? (
+  hasSubmittedRsvp || isRsvpLocked || rsvpterimakasih ? (
+    // Paparan Success
+<motion.div
+  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+  animate={{ opacity: 1, y: 0, scale: 1 }}
+  className="relative w-full max-w-[300px] mx-auto my-12"
+>
+  <div className="bg-white/20 backdrop-blur-lg border border-white/40 shadow-[0_8px_32px_rgba(74,68,63,0.1)] rounded-[2.5rem] p-8 text-center">
+    <div className="flex flex-col items-center justify-center space-y-6">
+      
+      <div className="w-12 h-12 border border-[#D6C7B5] rounded-full flex items-center justify-center overflow-hidden">
+        <img src="/image/52.png" alt="Icon" className="w-full h-auto object-contain scale-125" />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
+          Terima Kasih{nama ? <><br />{nama}!</> : "!"}
+        </h3>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-[#4A443F]/80 leading-relaxed text-center whitespace-pre-line">
+          {isRsvpLocked ? `${randomMessageRSVP}` : `${randomMessage}`}
+        </p>
+      </div>
+
+      {/* --- BUTTON SAVE THE DATE --- */}
+                {
+                !isRsvpLocked ? <motion.a
+    onClick={() => setShowCalendarModal(true)}
+  target="_blank"
+  whileTap={{ scale: 0.95 }}
+  className="mt-2 w-full px-8 py-4 bg-[#4A443F] text-[#FCFAF7] rounded-full flex flex-col items-center justify-center shadow-xl transition-all duration-500"
+>
+  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+    Save The Date
+  </span>
+  
+  <span className="text-[8px] font-bold uppercase tracking-[0.3em] opacity-60 mt-1">
+    08.08.2026
+  </span>
+</motion.a> : null}
+    </div>
+  </div>
+</motion.div>
+  ) : (
+    // Form asal anda
+    
  <form onSubmit={(e) => handleSubmit(e, 'rsvp')} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
     {/* Main Card Container (Style ikut Live Snap) */}
     <div className="bg-white p-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(74,68,63,0.08)] border border-[#D6C7B5]/10">
@@ -861,9 +1459,7 @@ const addToCalendar = (type: 'google' | 'apple') => {
           <textarea 
             name="message" 
             placeholder="UCAPAN" 
-            // className="w-full bg-[#FBF9F7] font-bold focus:ring-[#D6C7B5] border border-[#D6C7B5]/10 px-6 py-4 rounded-2xl text-[10px] font-bold outline-none focus:ring-1 focus:ring-[#4A443F]/20 uppercase tracking-widest h-28 placeholder:text-[#D6C7B5]/50 resize-none transition-all" 
             className="w-full bg-[#FBF9F7] px-5 py-4 rounded-xl text-[10px] font-bold outline-none focus:ring-1 focus:ring-[#D6C7B5] uppercase tracking-widest transition-all  h-28" 
-
           />
         </div>
 
@@ -877,7 +1473,48 @@ const addToCalendar = (type: 'google' | 'apple') => {
       </div>
     </div>
   </form>
+  )
+
 ) : (
+    isLiveLocked ? (
+    // Paparan Success
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      className="relative w-full max-w-[300px] mx-auto my-12"
+    >
+      {/* Glass Container */}
+      <div className="bg-white/20 backdrop-blur-lg border border-white/40 shadow-[0_8px_32px_rgba(74,68,63,0.1)] rounded-[2.5rem] p-8 text-center">
+
+        <div className="flex flex-col items-center justify-center space-y-6">
+
+<div className="w-12 h-12 border border-[#D6C7B5] rounded-full flex items-center justify-center">
+    {/* <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A443F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg> */}
+        <img
+    src="/image/52.png"
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-130"
+  />
+  </div>
+
+      <div className="space-y-2">
+<h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#4A443F]">
+  Terima Kasih{nama ? <><br />{nama}!</> : "!"}
+</h3>
+<p className="text-[9px] uppercase tracking-[0.2em] text-[#4A443F]/80 leading-relaxed text-center whitespace-pre-line">
+  {isLiveLocked ? `${randomMessageRSVP}` :   `${randomMessage}`}
+
+</p>
+</div>
+
+    </div>
+  </div>
+</motion.div>
+  ) : (
+    // Form asal anda
+    
     <form onSubmit={(e) => handleSubmit(e, 'live')} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
 
 <div className="space-y-8 animate-in fade-in duration-700">
@@ -982,63 +1619,82 @@ const addToCalendar = (type: 'google' | 'apple') => {
   </div>
 </div>
   </form>
-
+)
 )}
   </motion.div>
 </motion.section>
+
                 {/* --- SECTION Contact --- */}
 
 <motion.section 
       ref={sectionRefs.contact}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="flex flex-col items-center w-full max-w-[400px]">
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
+        <motion.div 
+  initial={{ scale: 0.8, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 1 }}
+  className="flex justify-center z-10 w-full mt-[-50px] ml-10" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+>
+  <img 
+    src="/image/62.png" 
+    alt="Main Invite"
+    className="w-full h-auto object-contain scale-90" 
+      // onClick={() => setIsOpen1(true)}
+  />
+</motion.div>
 <motion.div 
   initial={{ scale: 0.8, opacity: 0 }}
   animate={{ scale: 1, opacity: 1 }}
   transition={{ duration: 1 }}
-  className="relative z-10 w-full mt-[300px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
+  className="relative z-10 w-full mt-[-30px]" // <--- TUKAR NILAI NI (Lagi besar nilai, lagi tinggi dia naik)
 >
   <img 
     src="/image/21.png" 
-    alt="Main Invite"
-    className="w-full h-auto object-contain scale-100" 
+    className="w-full h-auto object-contain scale-90"     alt="Main Invite"
+
   />
 </motion.div>
 
 <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[60%] left-[70%] w-28 z-20 w-40"
+          src="/image/3.png" className="absolute bottom-[65%] left-[70%] w-28 z-20 w-[90px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[83%] left-[65%] w-28 z-20 w-10"
+          src="/image/3.png" className="absolute bottom-[80%] left-[80%] w-28 z-20 w-[80px]"
         />
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-20"
+          src="/image/3.png" className="absolute bottom-[35%] left-[10%] w-28 z-20 w-[100px]"
         />
         <motion.img 
+  animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/65.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[50px]"
+        />
+        {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/18.png" className="absolute bottom-[68%] left-[25%] w-28 z-20 w-60"
-        />
-        <motion.img 
+        /> */}
+        {/* <motion.img 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/19.png" className="absolute bottom-[68%] left-[30%] w-28 z-20 w-80"
-        />
-         <motion.img 
+        /> */}
+         {/* <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
           src="/image/20.png" className="absolute bottom-[60%] left-[20%] w-28 z-20 w-[50px]"
-        />
+        /> */}
          <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
@@ -1047,223 +1703,279 @@ const addToCalendar = (type: 'google' | 'apple') => {
         <motion.img 
   animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/20.png" className="absolute bottom-[90%] left-[25%] w-28 z-20 w-[50px]"
+          src="/image/20.png" className="absolute bottom-[80%] left-[10%] w-28 z-20 w-[50px]"
         />
-             <motion.img 
+             {/* <motion.img 
           src="/image/46.png" className="absolute bottom-[45%] left-[10%] w-28 z-20 w-[400px]"
-        />
+        /> */}
         <motion.img 
-          src="/image/51.png" className="absolute bottom-[32%] left-[38%] w-28 z-20 w-[150px]"
+          src="/image/60.png" className="absolute bottom-[38%] left-[38%] w-28 z-20 w-[40px]"
             whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
   onClick={() => setIsOpen1(true)}
+
+        />
+                <motion.img 
+          src="/image/61.png" className="absolute bottom-[38%] left-[55%] w-28 z-20 w-[35px]"
+            whileTap={{ scale: 0.9 }} // Tambah feedback bila ditekan
+  onClick={() => setIsOpen2(true)}
 
         />
              </div>
              
     </motion.section>
                 {/* --- SECTION Best Regards --- */}
+
 <motion.section 
   ref={sectionRefs.wishes}
-      className="relative h-screen w-full flex flex-col items-center justify-center snap-start"
+      className="relative h-screen w-full flex flex-col items-center justify-center snap-start overflow-x-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ amount: 0.5 }}
       transition={{ duration: 0.8 }}
     >
+      <div className="relative w-full max-w-[450px] aspect-[9/16] flex flex-col items-center justify-center">
+<motion.img 
+  src="/image/19.png" 
+  className="absolute bottom-[73%] left-[1%] w-[230px] z-20 -scale-x-100"
+/>
+ <motion.img 
+ onClick={() => setSelectedImage("/image/92.png")}
+          src="/image/92.png" className="absolute bottom-[40%] left-[73%] w-28 z-20 w-[90px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
 
- <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/30.png" className="absolute bottom-[50%] left-[50%] w-28 z-20 w-[250px]"
-        />
-        <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/32.png" className="absolute bottom-[70%] left-[10%] w-28 z-20 w-[200px]"
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
         />
          <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/32.png" className="absolute bottom-[50%] left-[10%] w-28 z-20 w-[200px]"
-        />
-        <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/31.png" className="absolute bottom-[70%] left-[50%] w-28 z-20 w-[250px]"
-        />
- <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/29.png" className="absolute bottom-[27%] left-[45%] w-28 z-20 w-[250px]"
-        />
-         <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/45.png" className="absolute bottom-[20%] left-[53%] w-28 z-20 w-[184px]"
-        />
-        {/* <motion.img 
-  animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/28.png" className="absolute bottom-[20%] left-[70%] w-28 z-20 w-[120px]"
-        /> */}
-         <motion.img 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/33.png" className="absolute bottom-[15%] left-[1%] w-28 z-20 w-[250px]"
-        />
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute  bottom-[35%] left-[75%] w-28 z-20 w-[200px]"
-        />
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/6.png" className="absolute bottom-[15%] left-[40%] w-28 z-20 w-[100px]"
-        />
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/3.png" className="absolute bottom-[80%] left-[45%] w-28 z-20 w-[100px]"
-        />
-        <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[40%] left-[1%] w-28 z-20 w-[100px]"
-        />
-         <motion.img 
-          animate={{ scale: [1, 1.2, 1] }} 
-  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/12.png" className="absolute bottom-[65%] left-[90%] w-28 z-20 w-[70px]"
+          onClick={() => setSelectedImage("/image/91.png")}
+          src="/image/91.png" className="absolute bottom-[45%] left-[45%] w-28 z-20 w-[90px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 0.5, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
         />
                 <motion.img 
+          onClick={() => setSelectedImage("/image/88.png")}
+          src="/image/88.png" className="absolute bottom-[69%] left-[7%] w-28 z-20 w-[130px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+        />
+         <motion.img 
+                   onClick={() => setSelectedImage("/image/89.png")}
+          src="/image/89.png" className="absolute bottom-[50%] left-[7%] w-28 z-20 w-[130px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
+        />
+        <motion.img 
+         onClick={() => setSelectedImage("/image/90.png")}
+          src="/image/90.png" className="absolute bottom-[65%] left-[45%] w-28 z-20 w-[180px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
+        />
+ <motion.img 
+          src="/image/29.png" className="absolute bottom-[27%] left-[40%] w-28 z-20 w-[200px]"
+        />
+         <motion.img 
+          src="/image/45.png" className="absolute bottom-[17%] left-[45%] w-28 z-20 w-[180px]"
+        />
+                 <motion.img 
+                  onClick={() => setSelectedImage("/image/82.png")}
+          src="/image/82.png" className="absolute bottom-[15%] left-[3%] w-28 z-20 w-[130px] drop-shadow"
+            style={{ originX: 0.5, originY: 0 }} 
+
+  animate={{
+    rotate: [-3, 3], // Hayunan halus 3 darjah
+  }}
+  
+  transition={{
+    duration: 2.2,         // Speed yang organik
+    repeat: Infinity,      // Tanpa henti
+    repeatType: "mirror",  // Patah balik dengan smooth
+    ease: "easeInOut",
+  }}
+        />
+        <motion.img 
           animate={{ scale: [1, 1.2, 1] }} 
   transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
-          src="/image/2.png" className="absolute bottom-[83%] left-[10%] w-28 z-20 w-[200px]"
+          src="/image/3.png" className="absolute  bottom-[28%] left-[85%] w-28 z-20 w-[80px]"
         />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/6.png" className="absolute bottom-[15%] left-[32%] w-28 z-20 w-[80px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/3.png" className="absolute bottom-[85%] left-[40%] w-28 z-20 w-[70px]"
+        />
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[41%] left-[1%] w-28 z-20 w-[60px]"
+        />
+         <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/12.png" className="absolute bottom-[57%] left-[80%] w-28 z-20 w-[60px]"
+        />  
+        <motion.img 
+          animate={{ scale: [1, 1.2, 1] }} 
+  transition={{ repeat: Infinity, duration: 3 }} // Tambah ni supaya dia sentiasa berdenyut
+          src="/image/11.png" className="absolute bottom-[88%] left-[80%] w-28 z-20 w-[70px]"
+        />
+        <div className="absolute -bottom-[1%] left-0 right-0 flex flex-col items-center">
+              <div className="flex flex-col items-center pt-12 pb-8">
+              <div className="flex items-center gap-4">
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+                <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
+                  8.8.2026 © AIMI NAJWA & ZULHILMI
+                </span>
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+              </div>
+              <span className="text-[5px] text-[#A39584]/30 uppercase tracking-[0.3em] mt-2">
+                Handcrafted with love by Aimi Najwa & Zulhilmi
+              </span>
+            </div>
+</div>
+          </div>
+
     </motion.section>
-                            {/* --- SECTION Wishes --- */}
    {/* --- SECTION Wishes & Moments --- */}
 <motion.section 
-  className="relative min-h-screen w-full flex flex-col items-center snap-start px-4 pt-24 pb-32"
+  className="relative min-h-[100dvh] w-full flex flex-col items-center snap-start px-4 pt-20 pb-20 overflow-x-hidden"
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
-  viewport={{ amount: 0.3 }}
-  transition={{ duration: 0.8 }}
+  viewport={{ amount: 0.1, once: true }} 
+  transition={{ duration: 0.5 }}
 >
   <motion.div 
     initial={{ opacity: 0, y: 20 }} 
     whileInView={{ opacity: 1, y: 0 }}
     className="w-full max-w-md space-y-8"
   >
-
-    {/* Sub-tab Selector IG Style */}
+    {/* Tab Selector */}
     <div className="flex bg-[#F3EFE9] p-1 rounded-full border border-[#D6C7B5]/20 shadow-inner">
-  {/* Wishes Button */}
-  <button 
-    onClick={() => setSubTabRolls('wishes')} 
-    className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
-      subTabRolls === 'wishes' ? 'bg-white shadow-md text-[#4A443F]' : 'text-[#A39584]/60'
-    }`}
-  >
-    Wishes
-  </button>
-
-  {/* Moments Button dengan Lock Logic */}
-  <button 
-    onClick={() => {
-      if (isLocked) {
-        // Panggil snackbar/toast bagitahu tarikh
-        showToast("MOMENTS AKAN DIBUKA PADA 08.08.2026", "error");
-      } else {
-        setSubTabRolls('moments');
-      }
-    }} 
-    className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 ${
-      subTabRolls === 'moments' 
-        ? 'bg-white shadow-md text-[#4A443F]' 
-        : (isLocked ? 'text-[#A39584]/30' : 'text-[#A39584]/60')
-    }`}
-  >
-    {isLocked && (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-50">
-        <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
-      </svg>
-    )}
-    Moments
-  </button>
-</div>
-
+      <button 
+        onClick={() => setSubTabRolls('wishes')} 
+        className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+          subTabRolls === 'wishes' ? 'bg-white shadow-md text-[#4A443F]' : 'text-[#A39584]/60'
+        }`}
+      >
+        Wishes
+      </button>
+      <button 
+        onClick={() => {
+          if (isLocked) {
+            showToast("MOMENTS AKAN DIBUKA PADA 08.08.2026", "error");
+          } else {
+            setSubTabRolls('moments');
+          }
+        }} 
+        className={`flex-1 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 ${
+          subTabRolls === 'moments' 
+            ? 'bg-white shadow-md text-[#4A443F]' 
+            : (isLocked ? 'text-[#A39584]/30' : 'text-[#A39584]/60')
+        }`}
+      >
+        {isLocked && (
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
+            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3H5.25A2.25 2.25 0 003 12v9a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 21v-9a2.25 2.25 0 00-2.25-2.25h-1.5v-3A5.25 5.25 0 0012 1.5zm-3.75 8.25v-3a3.75 3.75 0 117.5 0v3H8.25z" clipRule="evenodd" />
+          </svg>
+        )}
+        Moments
+      </button>
+    </div>
     {/* Content Area */}
-    <div className="min-h-[400px]">
+    <div className="min-h-[400px] flex flex-col items-center">
       <AnimatePresence mode="wait">
-        {subTabRolls === 'wishes' ? (
-/* --- VIEW 1: 2-COLUMN MINIMAL CANVAS --- */
-<motion.div 
-  key="wishes-canvas"
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  className="columns-2 gap-4 pt-4 space-y-4 px-2"
->
-  {data.filter(item => item.type === 'rsvp').map((item, index) => (
-   <motion.div
-          key={item.id}
-layoutId={`card-${item.id}`} // Unique layoutId
-      onClick={() => setSelectedWish(item)}          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: index * 0.05 }}
-          /* 
-             break-inside-avoid: Elakkan kad terputus antara column
-             inline-block + w-full: Memastikan kad duduk dalam container dengan betul
-          */
-          className="break-inside-avoid inline-block w-full 
-                     relative p-6
-                     bg-white/60 backdrop-blur-3xl 
-                     border border-white/40 
-                     rounded-[35px] 
-                     shadow-[0_20px_40px_rgba(74,68,63,0.08)]
-                     text-center"
-        >
-          <div className="relative flex flex-col items-center">
-            
-            {/* Header: Date */}
-            {/* <div className="mb-4 flex items-center justify-center w-full">
-              <span className="text-[7px] font-black text-[#A39584] uppercase tracking-[0.3em]">
-                {item.created_at
-                  ? new Date(item.created_at).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                    })
-                  : "10 APR"}
-              </span>
-            </div> */}
-
-            {/* Message: Serif & Elegant */}
-            <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 
-                          break-words w-full overflow-hidden whitespace-pre-wrap">
-              "{item.message}"
-            </p>
-
-            {/* Divider Kecil: mx-auto untuk center */}
-            <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
-
-            {/* Sender Info: Minimalist & Bold */}
-            <div className="flex flex-col items-center">
-              <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">
-                Sender
-              </span>
-              <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">
-                {item.name}
-              </h4>
-            </div>
-          </div>
-        </motion.div>
-  ))}
-</motion.div> 
-) : (
-          /* --- VIEW 2: MOMENTS GRID (INSTAGRAM STYLE) --- */
+        {/* KEADAAN 1: TENGAH LOADING */}
+        {loading && data.length === 0 ? (
+          <motion.div
+            key="loading-state"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="py-20 flex flex-col items-center"
+          >
+            <motion.img 
+              src="image/93.png" 
+              className="w-16 h-auto opacity-80"
+              animate={{ 
+                scale: [1, 1.05, 1],
+                opacity: [0.4, 0.8, 0.4] 
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.4em] mt-6 italic">
+              Loading...
+            </span>
+          </motion.div>
+        ) : subTabRolls === 'wishes' ? (
+          /* VIEW 1: WISHES */
+          <motion.div 
+            key="wishes-canvas"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="columns-2 gap-4 pt-4 space-y-4 px-2 w-full"
+          >
+            {data.filter(item => item.type === 'rsvp' && item.message !== "").map((item, index) => (
+              <motion.div
+                key={item.id}
+                layoutId={`card-${item.id}`}
+                onClick={() => setSelectedWish(item)}          
+                className="break-inside-avoid inline-block w-full relative p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.08)] text-center"
+              >
+                <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 break-words whitespace-pre-wrap">
+                  {item.message}
+                </p>
+                <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
+                <div className="flex flex-col items-center">
+                  <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">Sender</span>
+                  <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">{item.name}</h4>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div> 
+        ) : (
+          /* VIEW 2: MOMENTS GRID */
           <motion.div 
             key="moments-grid"
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
-            className="grid grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4"
+            className="grid grid-cols-3 gap-[2px] bg-[#D6C7B5]/10 border border-[#D6C7B5]/10 rounded-2xl overflow-hidden mt-4 w-full"
           >
             {data.filter(item => item.type === 'live').length > 0 ? (
               data.filter(item => item.type === 'live').map((item) => (
@@ -1271,80 +1983,110 @@ layoutId={`card-${item.id}`} // Unique layoutId
                   key={item.id} 
                   className="relative aspect-square bg-[#F3EFE9] overflow-hidden cursor-pointer group"
                   onClick={() => setSelectedItem(item)}
-                  whileHover={{ opacity: 0.9 }}
                 >
                   {item.image_url ? (
-                    <Image 
-                      src={item.image_url} 
-                      alt="Moment" 
-                      fill 
-                      className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                    />
+                    <Image src={item.image_url} alt="Moment" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#E5E1DA]">
                       <span className="text-[8px] text-[#A39584]">No Image</span>
                     </div>
                   )}
-                  {/* Overlay Info on Hover */}
-                  <div className="absolute inset-0 bg-[#4A443F]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 text-center">
-                    <p className="text-[7px] font-black text-white uppercase tracking-widest truncate">{item.name}</p>
-                  </div>
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-3 py-20 text-center text-[9px] text-[#A39584] uppercase tracking-widest opacity-50 italic">Tiada momen dikongsi...</div>
+              <div className="col-span-3 py-20 text-center text-[9px] text-[#A39584] uppercase tracking-widest opacity-50 italic">Tiada Moments Dikongsi...</div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
 
-    {/* Bottom Spacer for Mobile Navigation */}
-    <div className="h-24" />
+      {/* --- Bagian Bawah: Sentinel + Copyright --- */}
+      <div ref={observerTarget} className="h-10 w-full" />
+
+      <div className="w-full flex flex-col items-center">
+        {loading && data.length > 0 ? (
+          /* Loading kecil untuk Infinite Scroll */
+          <motion.img 
+            src="image/93.png" 
+            className="w-10 h-auto opacity-50 py-10"
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        ) : (
+          !hasMore && data.length > 0 && (
+            /* Copyright apabila list dah habis */
+            <div className="flex flex-col items-center pt-12 pb-8">
+              <div className="flex items-center gap-4">
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+                <span className="text-[7px] text-[#A39584]/50 uppercase tracking-[0.5em]">
+                  8.8.2026 © AIMI NAJWA & ZULHILMI
+                </span>
+                <div className="h-[1px] w-8 bg-[#A39584]/20" />
+              </div>
+              <span className="text-[5px] text-[#A39584]/30 uppercase tracking-[0.3em] mt-2">
+                Handcrafted with love by Aimi Najwa & Zulhilmi
+              </span>
+            </div>
+          )
+        )}
+      </div>
+    </div>
   </motion.div>
 </motion.section>
-
-  </div>
+    </div>
         {/* --- GLOBAL NAVIGATION --- */}
-{!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&& (
+{!isCoverOpen&& !isOpen && !selectedWish&& !isOpen1&&!selectedItem&&!showCalendarModal&&!isOpen2&&!selectedImage&& (
   <>
-        <nav className="fixed bottom-15 left-1/2 -translate-x-1/2 flex items-center p-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-200 pointer-events-auto">
+      <nav ref={navRef} className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center p-1.5 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-full shadow-[0_20px_50px_rgba(214,199,181,0.2)] z-[200] pointer-events-auto max-w-[90vw]">
+  
+  {/* Butang Restart - Sekarang dia akan duduk tetap di kiri */}
   <button
-  onClick={handleRestart}
-  className="ml-1 p-2.5 rounded-full text-[#A39584] hover:text-[#4A443F] transition-all group"
->
-  <RotateCcw 
-    size={16} 
-    className="group-hover:rotate-180 transition-transform duration-500"
-  />
-</button>
-{[
-  { id: 'info', label: 'Info' },
-  { id: 'calendar', label: 'Calendar & Location' },
-  { id: 'rsvp', label: 'RSVP' },
-  { id: 'contact', label: 'Contact' },
-  { id: 'wishes', label: 'Wishes' }
-].map((tab) => (
-  <button
-    key={tab.id}
-    onClick={() => scrollToSection(tab.id as any)}
-    className={`
-      px-4 py-2.5 rounded-full 
-      text-[8px] font-black uppercase tracking-[0.15em]
-      transition-all duration-500 whitespace-nowrap
-      ${activeTab === tab.id 
-        ? 'bg-[#4A443F] text-white shadow-lg scale-105'
-        : 'text-[#A39584]'
-      }
-    `}
+    onClick={handleRestart}
+    className="
+      ml-1 p-2.5 rounded-full text-[#A39584] 
+      transition-all duration-500 group flex-shrink-0
+      hover:bg-gradient-to-tr hover:from-[#D6C7B5]/30 hover:to-white
+      hover:shadow-[0_0_15px_rgba(214,199,181,0.5)]
+      hover:scale-110
+      z-10
+    "
   >
-    {tab.label}
+    <RotateCcw 
+      size={16} 
+      className="group-hover:animate-spin-slow transition-all duration-500"
+    />
   </button>
-))}
+  
+  {/* Divider nipis (Optional) - Untuk nampak beza antara button static & scrollable */}
+  <div className="w-[1px] h-4 bg-[#A39584]/20 mx-1 flex-shrink-0" />
 
-
-
-
+  {/* Container untuk Tabs - Bahagian ini sahaja yang akan scroll */}
+  <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide flex-1 px-1">
+    {[
+      { id: 'info', label: 'Info' },
+      { id: 'calendar', label: 'Calendar & Location' },
+      { id: 'rsvp', label: 'RSVP' },
+      { id: 'contact', label: 'Contact' },
+      { id: 'wishes', label: 'Wishes' }
+    ].map((tab) => (
+      <button
+        key={tab.id}
+        data-tab={tab.id}
+        onClick={() => scrollToSection(tab.id as any)}
+        className={`
+          px-4 py-2.5 rounded-full 
+          text-[8px] font-black uppercase tracking-[0.15em]
+          transition-all duration-500 whitespace-nowrap flex-shrink-0
+          ${activeTab === tab.id 
+            ? 'bg-[#4A443F] text-white shadow-lg scale-105'
+            : 'text-[#A39584]'
+          }
+        `}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
 </nav>
 </>
 
@@ -1354,126 +2096,108 @@ layoutId={`card-${item.id}`} // Unique layoutId
       {/* --- POLAROID MODAL --- */}
 <AnimatePresence>
   {selectedItem && (
-<motion.div 
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  exit={{ opacity: 0 }}
-  // Ubah z-index jadi lebih rendah dan kurangkan opacity background
-  className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6"
-  onClick={() => setSelectedItem(null)}
->
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto"
+      onClick={() => setSelectedItem(null)}
+    >
       <motion.div 
         initial={{ scale: 0.9, y: 20, rotate: -2 }}
         animate={{ scale: 1, y: 0, rotate: 0 }}
         exit={{ scale: 0.9, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white p-4 pb-12 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-[#F3EFE9] w-full max-w-xs aspect-[4/5] flex flex-col"
+        className="bg-white p-4 pb-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-[#F3EFE9] w-full max-w-xs relative my-auto"
       >
-        {/* Photo Area */}
-        <div className="relative flex-grow bg-[#F3EFE9] overflow-hidden shadow-inner border border-black/5">
+        {/* Photo Area: Tanpa aspect-ratio tetap supaya gambar potrait/landscape muat secara natural */}
+        <div className="relative bg-[#F3EFE9] overflow-hidden shadow-inner border border-black/5 rounded-sm">
           {selectedItem.image_url && (
-            <Image 
+            <img 
               src={selectedItem.image_url} 
               alt="Polaroid" 
-              fill 
-              className="object-cover"
+              className="w-full h-auto block object-contain"
             />
           )}
           {/* Subtle Film Grain Texture Over Image */}
           <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
         </div>
 
-{/* Polaroid Bottom Label - Tipografi Baru */}
-<div className="pt-8 pb-2 px-2 text-center flex flex-col items-center">
-  
-  {/* 1. Quote/Message: Gunakan font serif yang lebih lembut & saiz yang sedikit besar */}
-  <p className="text-[13px] font-serif italic text-[#3d3834] leading-[1.6] mb-4 px-2">
-    "{selectedItem.message||"-"}"
-  </p>
+        {/* Polaroid Bottom Label */}
+        <div className="pt-6 pb-2 px-2 text-center flex flex-col items-center">
+          
+          {/* 1. Quote/Message: Boleh scroll kalau terlalu panjang (max height 80px) */}
+          <p className="text-[13px] font-serif italic text-[#3d3834] leading-[1.6] mb-4 px-2 max-h-[80px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#D6C7B5]">
+            {selectedItem.message || "-"}
+          </p>
 
-  {/* 2. Divider: Gunakan dot kecil atau garis yang lebih halus */}
-  <div className="flex items-center gap-3 w-24 mb-4 opacity-30">
-    <div className="h-[0.5px] flex-grow bg-[#D6C7B5]" />
-    <div className="w-1 h-1 rounded-full bg-[#D6C7B5]" />
-    <div className="h-[0.5px] flex-grow bg-[#D6C7B5]" />
-  </div>
+          {/* 2. Divider */}
+          <div className="flex items-center gap-3 w-24 mb-4 opacity-30">
+            <div className="h-[0.5px] flex-grow bg-[#D6C7B5]" />
+            <div className="w-1 h-1 rounded-full bg-[#D6C7B5]" />
+            <div className="h-[0.5px] flex-grow bg-[#D6C7B5]" />
+          </div>
 
-  {/* 3. Name: Gunakan font yang sangat bold & wide tracking untuk vibe 'Luxury' */}
-  <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-[#4A443F] mb-1">
-    {selectedItem.name}
-  </h4>
+          {/* 3. Name */}
+          <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-[#4A443F] mb-1">
+            {selectedItem.name}
+          </h4>
 
-  {/* 4. Date: Gunakan font yang sangat halus (muted) */}
-  <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-[#A39584]/70">
-    {new Date(selectedItem.created_at).toLocaleDateString('en-GB', { 
-      day: '2-digit', month: 'short' , year: 'numeric'
-    })}
-  </p>
-</div>
+          {/* 4. Date */}
+          <p className="text-[7px] font-bold uppercase tracking-[0.2em] text-[#A39584]/70">
+            {new Date(selectedItem.created_at).toLocaleDateString('en-GB', { 
+              day: '2-digit', month: 'short', year: 'numeric'
+            })}
+          </p>
+        </div>
       </motion.div>
     </motion.div>
   )}
 </AnimatePresence>
-<AnimatePresence>
-  {selectedWish && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      
-      {/* 1. Backdrop Gelap (Soft) */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={() => setSelectedWish(null)}
-        className="absolute inset-0 bg-black/5 backdrop-blur-sm"
-      />
+{selectedWish && (
+  <div 
+    onClick={() => setSelectedWish(null)}
+    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
+  >
+    {/* Box Modal: Style disesuaikan */}
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
 
-      {/* 2. Box Modal: Ikut style Nav yang kau nak */}
-      <motion.div
-        layoutId={`card-${selectedWish.id}`}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        onClick={(e) => e.stopPropagation()}
-        /* STYLE GLASS SEBIJIK MACAM NAV KAU */
-        className="relative w-full max-w-[320px] p-10 
-                   bg-white/20 backdrop-blur-3xl 
-                   border border-white/40 
-                   rounded-[40px] 
-                   shadow-[0_20px_50px_rgba(214,199,181,0.15)]
-                   text-center flex flex-col items-center overflow-hidden"
-      >
-        {/* Header: Date */}
-        <div className="mb-6">
-          <span className="text-[8px] font-black text-[#A39584] uppercase tracking-[0.4em]">
-            {new Date(selectedWish.created_at ?? Date.now()).toLocaleDateString('en-GB', { 
-              day: '2-digit', month: 'long' , year: 'numeric'
-            })}
-          </span>
-        </div>
+      onClick={(e) => e.stopPropagation()}
+      className="relative w-full max-w-[280px] p-8 bg-white/60 backdrop-blur-3xl border border-white/100 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)] text-center flex flex-col items-center"
+    >
+      {/* Header: Date (Style 'Inactive' kecil) */}
+      <div className="mb-8">
+        <span className="text-[10px] font-black text-[#A39584] uppercase tracking-[0.2em]">
+          {new Date(selectedWish.created_at ?? Date.now()).toLocaleDateString('en-GB', { 
+            day: '2-digit', month: 'long', year: 'numeric'
+          })}
+        </span>
+      </div>
 
-        {/* Message: Dengan Scrollbar (Teks Coklat Gelap) */}
-        <div className="w-full max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-          <p className="text-[15px] text-[#4A443F] leading-relaxed font-serif italic break-words">
-            "{selectedWish.message||"-"}"
-          </p>
-        </div>
+      {/* Message: Dengan Scrollbar */}
+      <div className="w-full max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+        <p className="text-[15px] text-[#4A443F] leading-relaxed font-serif italic break-words">
+          {selectedWish.message || "-"}
+        </p>
+      </div>
 
-        {/* Divider Kecil */}
-        <div className="w-10 h-[1px] bg-[#A39584]/30 my-6" />
+      {/* Divider Kecil */}
+      <div className="w-10 h-[1px] bg-[#A39584]/30 my-8" />
 
-        {/* Sender Info */}
-        <div className="flex flex-col items-center">
-          <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-2">
-            Sender
-          </span>
-          <h4 className="text-[14px] font-black text-[#4A443F] uppercase tracking-[0.15em]">
-            {selectedWish.name}
-          </h4>
-        </div>
-      </motion.div>
-    </div>
-  )}
-</AnimatePresence>
+      {/* Sender Info */}
+      <div className="flex flex-col items-center">
+        <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-2">
+          Sender
+        </span>
+        <h4 className="text-[14px] font-black text-[#4A443F] uppercase tracking-[0.15em]">
+          {selectedWish.name}
+        </h4>
+      </div>
+    </motion.div>
+  </div>
+)}
 {isOpen && (
   <div 
     // Klik luar untuk tutup
@@ -1482,7 +2206,9 @@ layoutId={`card-${item.id}`} // Unique layoutId
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
   >
     {/* Box Modal: Copy sebijik style Nav kau */}
-    <div 
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       onClick={(e) => e.stopPropagation()} 
 className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"    >
       {/* Tajuk: Ikut style text 'Inactive' kau tapi center */}
@@ -1508,7 +2234,7 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
 
         
       </div>
-    </div>
+    </motion.div>
   </div>
 )}
 {isOpen1 && (
@@ -1516,45 +2242,21 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
     onClick={() => setIsOpen1(false)} 
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
   >
-    <div 
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       onClick={(e) => e.stopPropagation()} 
       className="w-full max-w-[320px] p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)]"
     >
       <h3 className="text-[#A39584] text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-center">
-        Hubungi
+        Hubungi Whatsapp
       </h3>
       
       <div className="grid grid-cols-2 gap-3">
         
         {/* Butang 1: Aimi Najwa */}
         <button 
-          onClick={() => window.open('https://wa.me/+60163799397', '_blank')}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Aimi Najwa
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Perempuan
-          </span>
-        </button>
-
-        {/* Butang 2: Zulhilmi */}
-        <button 
-          onClick={() => window.open('https://wa.me/60177117852', '_blank')}
-          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
-        >
-          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
-            Zulhilmi
-          </span>
-          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
-            Pengantin<br/>Lelaki
-          </span>
-        </button>
-
-        {/* Butang 3: Abd Raof */}
-        <button 
-          onClick={() => window.open('https://wa.me/60123456789', '_blank')}
+          onClick={() => window.open('https://wa.me/+60104071970', '_blank')}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
@@ -1565,9 +2267,9 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
           </span>
         </button>
 
-        {/* Butang 4: Abdul Latiff */}
+        {/* Butang 2: Zulhilmi */}
         <button 
-          onClick={() => window.open('https://wa.me/60123456789', '_blank')}
+          onClick={() => window.open('https://wa.me/+60172671343', '_blank')}
           className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
         >
           <span className="text-[9px] font-black uppercase tracking-wider mb-1">
@@ -1578,8 +2280,128 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
           </span>
         </button>
 
+        {/* Butang 3: Abd Raof */}
+        <button 
+          onClick={() => window.open('https://wa.me/+601137139869', '_blank')}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Aizat Ikmal
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Abang Pengantin<br/>Perempuan
+          </span>
+        </button>
+
+        {/* Butang 4: Abdul Latiff */}
+        <button 
+          onClick={() => window.open('https://wa.me/+60127527587', '_blank')}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ahmad Tarmidzi
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Abang Pengantin<br/>Lelaki
+          </span>
+        </button>
+ <button 
+          onClick={() => window.open('https://wa.me/+601154110765', '_blank')}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ainul Sufiah
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Adik Pengantin<br/>Perempuan
+          </span>
+        </button>
       </div>
-    </div>
+    </motion.div>
+  </div>
+)}
+{isOpen2 && (
+  <div 
+    onClick={() => setIsOpen2(false)} 
+    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
+  >
+    <motion.div 
+         initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      onClick={(e) => e.stopPropagation()} 
+      className="w-full max-w-[320px] p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_30px_60px_rgba(74,68,63,0.15)]"
+    >
+      <h3 className="text-[#A39584] text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-center">
+        Hubungi Telefon
+      </h3>
+      
+      <div className="grid grid-cols-2 gap-3">
+        
+        {/* Butang 1: Aimi Najwa */}
+        <button 
+          onClick={() => window.location.href = 'tel:+60104071970'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Abd Raof
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Bapa Pengantin<br/>Perempuan
+          </span>
+        </button>
+
+        {/* Butang 2: Zulhilmi */}
+        <button 
+onClick={() => window.location.href = 'tel:+60172671343'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Abdul Latiff
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Bapa Pengantin<br/>Lelaki
+          </span>
+        </button>
+
+        {/* Butang 3: Abd Raof */}
+<button 
+onClick={() => window.location.href = 'tel:+60163799397'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Aizat Ikmal
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Abang Pengantin<br/>Perempuan
+          </span>
+        </button>
+
+        {/* Butang 4: Abdul Latiff */}
+        <button 
+onClick={() => window.location.href = 'tel:+60127527587'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ahmad Tarmidzi
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Abang Pengantin<br/>Lelaki
+          </span>
+        </button>
+        <button 
+onClick={() => window.location.href = 'tel:+601154110765'}
+          className="flex flex-col items-center justify-center p-4 bg-[#4A443F] text-white rounded-[1.8rem] shadow-lg active:scale-95 transition-all duration-500"
+        >
+          <span className="text-[9px] font-black uppercase tracking-wider mb-1">
+            Ainul Sufiah
+          </span>
+          <span className="text-[6px] font-medium uppercase tracking-tight text-white/50 text-center leading-tight">
+            Adik Pengantin<br/>Perempuan
+          </span>
+        </button>
+
+      </div>
+    </motion.div>
   </div>
 )}
 {/* Modal Calendar: Seiras dengan style Location Modal kau */}
@@ -1589,9 +2411,11 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
     className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500 animate-in fade-in"
   >
     {/* Box Modal: Glassmorphism container */}
-    <div 
+    <motion.div 
+     initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       onClick={(e) => e.stopPropagation()} 
-      className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/40 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"
+      className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-white/60 rounded-[40px] shadow-[0_20px_50px_rgba(214,199,181,0.15)]"
     >
       {/* Tajuk */}
       <h3 className="text-[#A39584] text-[10px] font-black uppercase tracking-[0.2em] mb-8 text-center">
@@ -1615,9 +2439,23 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
           Apple / Outlook
         </button>
       </div>
-    </div>
+    </motion.div>
   </div>
 )}
+{selectedImage && (
+  <div 
+    className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/40 backdrop-blur-sm transition-all duration-500"
+    onClick={() => setSelectedImage(null)} // Tekan luar gambar untuk tutup
+  >
+    <motion.img 
+      initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      src={selectedImage} 
+      className="max-w-[90%] max-h-[90%] object-contain rounded-lg"
+    />
+  </div>
+)}
+
 {/* <JooxPlayer/> */}
 <JooxPlayer shouldPlay={!isCoverOpen} />
 <Snackbar 
@@ -1625,7 +2463,50 @@ className="w-full max-w-[280px] p-8 bg-white/20 backdrop-blur-3xl border border-
       message={snackbar.message} 
       type={snackbar.type} 
     />
+<AnimatePresence>
+  {isPreloading && (
+    <motion.div
+      key="preloader"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.8 } }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-[#FCFAF7]"
+    >
+      {/* Container Utama yang Bernafas */}
+      <motion.div 
+        className="flex flex-col items-center"
+        animate={{ 
+          scale: [1, 1.03, 1], 
+          opacity: [0.4, 0.9, 0.4] 
+        }}
+        transition={{ 
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut" 
+        }}
+      >
+        {/* 1. Logo 93.png */}
+        <img
+          src="/image/93.png"
+          alt="Aimi & Zulhilmi"
+          className="w-20 h-auto mb-10" // mb-10 untuk jarakkan dengan copyright
+        />
+
+        {/* 2. Copyright (Duduk sekali bawah logo) */}
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-4">
+            <span className="text-[7px] text-[#A39584] uppercase tracking-[0.5em] font-medium">
+              8.8.2026 © AIMI NAJWA & ZULHILMI
+            </span>
+          </div>
+          <span className="text-[5px] text-[#A39584]/40 uppercase tracking-[0.3em] mt-3">
+            Handcrafted with love by Aimi Najwa & Zulhilmi
+          </span>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
-    
+    </>
   );
 }
