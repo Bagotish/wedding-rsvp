@@ -303,6 +303,7 @@ const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
   setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
 };
 // Target date: 8 Ogos 2026
+//Moment : Bukak Lepas 8/8/2026
 // const targetDate = new Date('2026-01-01T00:00:00'); //test
 const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
@@ -519,14 +520,13 @@ const startAutoScroll = () => {
 
 // Pantau Interaction & Popout
 // Letakkan di dalam komponen, sebelum handleUserInteraction
-const isAnyModalOpen = selectedImage || isCoverOpen || isOpen || selectedWish || 
-                       isOpen1 || selectedItem || showCalendarModal || isOpen2;
+const isAnyModalOpen = selectedImage || isCoverOpen || isOpen || selectedWish || isOpen1 || selectedItem || showCalendarModal || isOpen2;
 
 // Gabungkan isRsvpVisible ke dalam syarat pemberhentian
 const rsvpRef = useRef<HTMLDivElement | null>(null);
 const [isRsvpVisible, setIsRsvpVisible] = useState(false);
 // Auto-scroll akan STOP jika modal BUKA ATAU sedang berada di RSVP
-const shouldStopAutoScroll = isAnyModalOpen || isRsvpVisible;
+const shouldStopAutoScroll = isRsvpVisible || isAnyModalOpen;
 
 const handleUserInteraction = () => {
   if (shouldStopAutoScroll) return; 
@@ -558,19 +558,22 @@ useEffect(() => {
 
   return () => stopAutoScroll();
 }, [shouldStopAutoScroll]);
-useEffect(() => {
-  if (shouldStopAutoScroll) {
-    stopAutoScroll();
-    if (interactionTimeoutRef.current) {
-      window.clearTimeout(interactionTimeoutRef.current);
-    }
-  } else {
-    // Apabila keluar dari bahagian RSVP (atau modal tutup), mula balik auto-scroll
-    startAutoScroll();
-  }
 
-  return () => stopAutoScroll();
-}, [shouldStopAutoScroll]);
+// useEffect(() => {
+//   if (shouldStopAutoScroll) {
+//     stopAutoScroll();
+//     if (interactionTimeoutRef.current) {
+//       window.clearTimeout(interactionTimeoutRef.current);
+//     }
+//   } else {
+//     // Apabila keluar dari bahagian RSVP (atau modal tutup), mula balik auto-scroll
+//     startAutoScroll();
+//   }
+
+//   return () => stopAutoScroll();
+// }, [shouldStopAutoScroll]);
+
+
 useEffect(() => {
   if (isAnyModalOpen) {
     stopAutoScroll();
@@ -617,8 +620,9 @@ useEffect(() => {
     } else{
         setSubTabAction('live');
     }
-  }
+      }
 }, []);
+
 return (
   <>
     <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
