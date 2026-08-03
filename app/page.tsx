@@ -36,7 +36,6 @@ const thankYouMessages1 = [
 "Satu hati, seribu memori.",
 ];
 export default function WeddingApp() {
-  
 const [activeTab, setActiveTab] = useState<
   'info' | 'calendar' | 'rsvp' | 'contact'
 >('info');  
@@ -319,7 +318,11 @@ const isRsvpLocked = now > rsvpDeadline;
 const liveStartDate = new Date('2026-08-08T00:00:00');
 const liveEndDate = new Date('2026-08-08T23:59:59');
 const isLiveLocked = now < liveStartDate || now > liveEndDate;
-   const [showCalendarModal, setShowCalendarModal] = useState(false);
+
+const rsvpterimakasih = now >= new Date('2026-08-08T00:00:00');
+// const rsvpterimakasih = now > new Date('2026-01-01T00:00:00'); //test
+
+const [showCalendarModal, setShowCalendarModal] = useState(false);
 
 const addToCalendar = (type: 'google' | 'apple') => {
   const event = {
@@ -519,9 +522,14 @@ const startAutoScroll = () => {
 const isAnyModalOpen = selectedImage || isCoverOpen || isOpen || selectedWish || 
                        isOpen1 || selectedItem || showCalendarModal || isOpen2;
 
+// Gabungkan isRsvpVisible ke dalam syarat pemberhentian
+const rsvpRef = useRef<HTMLDivElement | null>(null);
+const [isRsvpVisible, setIsRsvpVisible] = useState(false);
+// Auto-scroll akan STOP jika modal BUKA ATAU sedang berada di RSVP
+const shouldStopAutoScroll = isAnyModalOpen || isRsvpVisible;
+
 const handleUserInteraction = () => {
-  // Jika mana-maya modal buka, jangan buat apa-apa (biar auto-scroll kekal stop)
-  if (isAnyModalOpen) return; 
+  if (shouldStopAutoScroll) return; 
 
   stopAutoScroll();
   
@@ -530,13 +538,39 @@ const handleUserInteraction = () => {
   }
 
   interactionTimeoutRef.current = window.setTimeout(() => {
-    // Check sekali lagi sebelum start
-    if (!isAnyModalOpen) {
+    if (!shouldStopAutoScroll) {
       startAutoScroll();
     }
   }, 5000); 
 };
 
+// Ubah dependency array useEffect kepada [shouldStopAutoScroll]
+useEffect(() => {
+  if (shouldStopAutoScroll) {
+    stopAutoScroll();
+    if (interactionTimeoutRef.current) {
+      window.clearTimeout(interactionTimeoutRef.current);
+    }
+  } else {
+    // Apabila keluar dari RSVP (atau modal tutup), jalan balik auto-scroll
+    startAutoScroll();
+  }
+
+  return () => stopAutoScroll();
+}, [shouldStopAutoScroll]);
+useEffect(() => {
+  if (shouldStopAutoScroll) {
+    stopAutoScroll();
+    if (interactionTimeoutRef.current) {
+      window.clearTimeout(interactionTimeoutRef.current);
+    }
+  } else {
+    // Apabila keluar dari bahagian RSVP (atau modal tutup), mula balik auto-scroll
+    startAutoScroll();
+  }
+
+  return () => stopAutoScroll();
+}, [shouldStopAutoScroll]);
 useEffect(() => {
   if (isAnyModalOpen) {
     stopAutoScroll();
@@ -551,18 +585,42 @@ useEffect(() => {
   return () => stopAutoScroll();
 }, [isAnyModalOpen]); 
 
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      // isIntersecting = true jika elemen RSVP kelihatan di skrin
+      setIsRsvpVisible(entry.isIntersecting);
+    },
+    {
+      threshold: 0.3, // Berhenti apabila 30% daripada bahagian RSVP kelihatan
+    }
+  );
 
-const searchParams = useSearchParams();
+  if (rsvpRef.current) {
+    observer.observe(rsvpRef.current);
+  }
 
-  useEffect(() => {
-    const targetTab = searchParams.get('tab');
-if(targetTab === 'rsvp') {
+  return () => {
+    if (rsvpRef.current) {
+      observer.unobserve(rsvpRef.current);
+    }
+  };
+}, []);
+
+useEffect(() => {
+  // Ambil query parameter dari URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  if(tabParam === 'rsvp') {
    scrollToSection('rsvp');
-  setSubTabAction('live');
-
-}
-  }, [searchParams]);
+  if (now < liveStartDate) {
+    } else{
+        setSubTabAction('live');
+    }
+  }
+}, []);
 return (
+  <>
     <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
       
 
@@ -1192,6 +1250,8 @@ transition={{ delay: 1.1, duration: 2.2, repeat: Infinity, repeatType: "mirror",
   whileInView={{ opacity: 1 }}
   viewport={{ amount: 0.3 }}
   transition={{ duration: 0.8 }}
+  onViewportEnter={() => setIsRsvpVisible(true)}
+  onViewportLeave={() => setIsRsvpVisible(false)}
 >
   <motion.div 
     initial={{ opacity: 0, y: 20 }} 
@@ -1253,7 +1313,7 @@ transition={{ delay: 1.1, duration: 2.2, repeat: Infinity, repeatType: "mirror",
 </button>
 </div>
 {subTabAction === 'rsvp' ? (
-  hasSubmittedRsvp || isRsvpLocked ? (
+  hasSubmittedRsvp || isRsvpLocked || rsvpterimakasih ? (
     // Paparan Success
 <motion.div
   initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -2443,6 +2503,6 @@ onClick={() => window.location.href = 'tel:+601154110765'}
   )}
 </AnimatePresence>
     </div>
-    
+    </>
   );
 }
