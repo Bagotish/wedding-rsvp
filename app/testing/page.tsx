@@ -342,8 +342,8 @@ const rsvpDeadline = new Date('2026-08-10T23:59:59');
 const isRsvpLocked = now > rsvpDeadline;
 
 // Live Snap: Buka 08/08/2026 hingga 09/08/2026
-// const liveStartDate = new Date('2026-01-01T00:00:00'); //test
-const liveStartDate = new Date('2026-08-08T00:00:00');
+const liveStartDate = new Date('2026-01-01T00:00:00'); //test
+// const liveStartDate = new Date('2026-08-08T00:00:00');
 const liveEndDate = new Date('2026-08-08T23:59:59');
 const isLiveLocked = now < liveStartDate || now > liveEndDate;
 
