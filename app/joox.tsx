@@ -34,35 +34,48 @@ export default function JooxPlayer({ shouldPlay }: JooxPlayerProps) {
 
     const fadeStep = 0.05;
     const fadeInterval = 50;
+    let fadeTimer: number | null = null;
 
     if (isPlaying) {
-      // --- FADE IN ---
-      // Kita tak reset currentTime kat sini supaya manual play/pause tak restart lagu
+      // --- PLAY ---
       audio.play().catch(err => console.log("Autoplay blocked:", err));
 
-      const fadeIn = setInterval(() => {
+      fadeTimer = window.setInterval(() => {
         if (audio.volume < 0.95) {
           audio.volume = Math.min(1, audio.volume + fadeStep);
         } else {
           audio.volume = 1;
-          clearInterval(fadeIn);
+          if (fadeTimer !== null) {
+            window.clearInterval(fadeTimer);
+            fadeTimer = null;
+          }
         }
       }, fadeInterval);
-
-      return () => clearInterval(fadeIn);
     } else {
-      const fadeOut = setInterval(() => {
+      // --- PAUSE IMMEDIATELY FOR MOBILE SAFETY ---
+      audio.pause();
+      if (audio.volume > 0) {
+        audio.volume = 0;
+      }
+
+      fadeTimer = window.setInterval(() => {
         if (audio.volume > 0.05) {
           audio.volume = Math.max(0, audio.volume - fadeStep);
         } else {
           audio.volume = 0;
-          audio.pause();
-          clearInterval(fadeOut);
+          if (fadeTimer !== null) {
+            window.clearInterval(fadeTimer);
+            fadeTimer = null;
+          }
         }
       }, fadeInterval);
-
-      return () => clearInterval(fadeOut);
     }
+
+    return () => {
+      if (fadeTimer !== null) {
+        window.clearInterval(fadeTimer);
+      }
+    };
   }, [isPlaying]);
   return (
     <div className="fixed top-8 left-8 z-[100] flex items-center h-[44px]">
