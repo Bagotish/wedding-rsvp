@@ -193,7 +193,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'rsvp' | 
     setPreviewUrl(null);
     setCapturedFile(null);
     
-    setSubTabRolls(type === 'rsvp' ? 'wishes' : 'moments');
+    if (type === 'rsvp') {
+      if (subTabRolls !== 'wishes') setSubTabRolls('wishes');
+    } else {
+      if (subTabRolls !== 'moments') setSubTabRolls('moments');
+    }
 
   } catch (err) { 
     console.error(err);
@@ -301,14 +305,32 @@ const Snackbar: React.FC<SnackbarProps> = ({ message, type, isVisible }) => (
     )}
   </AnimatePresence>
 );
-   const [snackbar, setSnackbar] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+const toastTimerRef = useRef<number | null>(null);
+const [snackbar, setSnackbar] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
 // 2. Function untuk trigger snackbar
 const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+  if (toastTimerRef.current) {
+    window.clearTimeout(toastTimerRef.current);
+  }
+
   setSnackbar({ show: true, message: msg, type });
-  setTimeout(() => setSnackbar((prev) => ({ ...prev, show: false })), 2000);
+
+  toastTimerRef.current = window.setTimeout(() => {
+    setSnackbar((prev) => ({ ...prev, show: false }));
+    toastTimerRef.current = null;
+  }, 2000);
 };
-// Target date: 8 Ogos 2026
+
+useEffect(() => {
+  return () => {
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+  };
+}, []);
+
+// Moments Target date: 8 Ogos 2026
 const targetDate = new Date('2026-01-01T00:00:00'); //test
 // const targetDate = new Date('2026-08-08T00:00:00');
 const isLocked = new Date() < targetDate;
@@ -320,8 +342,8 @@ const rsvpDeadline = new Date('2026-08-10T23:59:59');
 const isRsvpLocked = now > rsvpDeadline;
 
 // Live Snap: Buka 08/08/2026 hingga 09/08/2026
-const liveStartDate = new Date('22026-01-01T00:00:00'); //test
-// const liveStartDate = new Date('2026-08-08T00:00:00');
+// const liveStartDate = new Date('2026-01-01T00:00:00'); //test
+const liveStartDate = new Date('2026-08-08T00:00:00');
 const liveEndDate = new Date('2026-08-08T23:59:59');
 const isLiveLocked = now < liveStartDate || now > liveEndDate;
 
@@ -433,12 +455,17 @@ const fetchData = async (reset = false) => {
   const typeFilter = subTabRolls === 'wishes' ? 'rsvp' : 'live';
 
   try {
-    const { data: results, error } = await supabase
+    let query = supabase
       .from('guests')
       .select('*')
       .eq('type', typeFilter)
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .order('created_at', { ascending: false });
+
+    if (typeFilter === 'rsvp') {
+      query = query.not('message', 'is', null).neq('message', '');
+    }
+
+    const { data: results, error } = await query.range(from, to);
 
     if (error) {
       console.error('fetchData error', error);
@@ -627,6 +654,10 @@ const handleTabChange = (newTab: 'wishes' | 'moments') => {
   setSubTabRolls(newTab);
   // Panggil API semula...
 };
+
+const wishItems = data.filter(item => item.type === 'rsvp' && item.message && item.message.toString().trim() !== '');
+const showWishesPlaceholder = subTabRolls === 'wishes' && wishItems.length % 2 === 1;
+const wishGridItems = showWishesPlaceholder ? [...wishItems, { placeholder: true, id: 'wishes-placeholder' }] : wishItems;
   return (
     <>
       <div className="min-h-screen bg-[#FCFAF7] text-[#4A443F] font-sans overflow-x-hidden selection:bg-[#E8DED1]">
@@ -1952,25 +1983,47 @@ transition={{ delay: 1, duration: 2.2, repeat: Infinity, repeatType: "mirror", e
         key="wishes-canvas"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="columns-2 gap-4 pt-4 space-y-4 px-2 w-full"
+        className="grid grid-cols-2 gap-4 pt-4 px-2 w-full"
       >
-        {data.filter(item => item.type === 'rsvp' && item.message !== "").map((item) => (
-          <motion.div
-            key={item.id}
-            layoutId={`card-${item.id}`}
-            onClick={() => setSelectedWish(item)}          
-            className="break-inside-avoid inline-block w-full relative p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.08)] text-center cursor-pointer"
-          >
-            <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 break-words whitespace-pre-wrap">
-              {item.message}
-            </p>
-            <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
-            <div className="flex flex-col items-center">
-              <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">Sender</span>
-              <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">{item.name}</h4>
-            </div>
-          </motion.div>
-        ))}
+        {wishGridItems.map((item) => {
+          if ('placeholder' in item && item.placeholder) {
+            return (
+              <motion.div
+                key="wishes-placeholder"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="relative w-full min-h-[220px] p-6 bg-white/40 border border-dashed border-[#A39584]/30 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.04)] text-center flex items-center justify-center"
+              >
+                <div className="flex h-full flex-col items-center justify-center gap-3">
+                  <div className="inline-flex items-center justify-center rounded-full bg-[#E9D7B8]/70 p-3 text-[#A39584]">
+                    <span className="text-[18px]">✨</span>
+                  </div>
+                  <p className="text-[12px] leading-relaxed text-[#746653] font-serif">
+                    More love is coming soon.
+                    <span className="block text-[10px] text-[#A39584] mt-2">Your grid stays balanced on mobile.</span>
+                  </p>
+                </div>
+              </motion.div>
+            );
+          }
+
+          return (
+            <motion.div
+              key={item.id ?? item.created_at ?? Math.random()}
+              onClick={() => setSelectedWish(item)}          
+              className="relative w-full min-h-[220px] p-6 bg-white/60 backdrop-blur-3xl border border-white/40 rounded-[35px] shadow-[0_20px_40px_rgba(74,68,63,0.08)] text-center cursor-pointer flex flex-col justify-center items-center"
+            >
+              <p className="text-[12px] text-[#4A443F] leading-relaxed font-serif italic mb-6 break-words whitespace-pre-wrap text-center w-full">
+                {item.message}
+              </p>
+              <div className="w-8 h-[1px] bg-[#A39584]/20 mb-3 mx-auto" />
+              <div className="flex flex-col items-center">
+                <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-[#A39584] mb-1">Sender</span>
+                <h4 className="text-[10px] font-black text-[#4A443F] uppercase tracking-widest leading-tight">{item.name}</h4>
+              </div>
+            </motion.div>
+          );
+        })}
       </motion.div> 
     ) : (
       /* VIEW 2: MOMENTS GRID (Sama ringkas seperti Wishes) */
