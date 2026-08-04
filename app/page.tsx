@@ -38,6 +38,7 @@ const [activeTab, setActiveTab] = useState<
   'info' | 'calendar' | 'rsvp' | 'contact'
 >('info');  
 const [subTabAction, setSubTabAction] = useState<'rsvp' | 'live'>('rsvp');
+  const jooxRef = useRef<import('./joox').JooxPlayerHandle | null>(null);
   const [subTabRolls, setSubTabRolls] = useState<'wishes' | 'moments'>('wishes');
   const [isCoverOpen, setIsCoverOpen] = useState(true);
   const [data, setData] = useState<any[]>([]);
@@ -747,7 +748,10 @@ const wishGridItems = showWishesPlaceholder ? [...wishItems, { placeholder: true
         <div className="absolute bottom-[5%] z-30">
           <button 
             className="px-12 py-4 rounded-full bg-[#989F81] text-white font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-[#868d6f] active:scale-95 transition-all" 
-            onClick={() => setIsCoverOpen(false)}
+            onClick={async () => {
+              await jooxRef.current?.playAudio();
+              setIsCoverOpen(false);
+            }}
           >
             Enter Experience
           </button>
@@ -2530,7 +2534,7 @@ onClick={() => window.location.href = 'tel:+601154110765'}
 )}
 
 {/* <JooxPlayer/> */}
-<JooxPlayer shouldPlay={!isCoverOpen} />
+<JooxPlayer ref={jooxRef} shouldPlay={!isCoverOpen} />
 <Snackbar 
       isVisible={snackbar.show} 
       message={snackbar.message} 

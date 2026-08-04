@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Play, Pause } from 'lucide-react';
@@ -9,22 +9,47 @@ interface JooxPlayerProps {
   shouldPlay: boolean;
 }
 
-export default function JooxPlayer({ shouldPlay }: JooxPlayerProps) {
- const [isPlaying, setIsPlaying] = useState(false);
+export interface JooxPlayerHandle {
+  playAudio: () => Promise<void>;
+  pauseAudio: () => void;
+}
+
+const JooxPlayer = forwardRef<JooxPlayerHandle, JooxPlayerProps>(({ shouldPlay }, ref) => {
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playAudio = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      audio.volume = 1;
+      await audio.play();
+      setIsPlaying(true);
+    } catch (err) {
+      console.log("Audio play blocked:", err);
+    }
+  };
+
+  const pauseAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    setIsPlaying(false);
+  };
+
+  useImperativeHandle(ref, () => ({ playAudio, pauseAudio }), [playAudio, pauseAudio]);
 
 
   useEffect(() => {
     if (shouldPlay) {
-      // RESET: Hanya bila masuk balik dari Cover
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
       }
-      setIsPlaying(true);
+      playAudio();
     } else {
-      // STOP: Bila handleRestart dipicu
-      setIsPlaying(false);
+      pauseAudio();
     }
   }, [shouldPlay]);
 
@@ -79,7 +104,7 @@ export default function JooxPlayer({ shouldPlay }: JooxPlayerProps) {
   }, [isPlaying]);
   return (
     <div className="fixed top-8 left-8 z-[100] flex items-center h-[44px]">
-      <audio ref={audioRef} src="/song.mp3" loop />
+      <audio ref={audioRef} src="/song.mp3" loop preload="auto" playsInline />
 
       <motion.div
         layout
@@ -156,4 +181,8 @@ export default function JooxPlayer({ shouldPlay }: JooxPlayerProps) {
       </motion.div>
     </div>
   );
-}
+});
+
+JooxPlayer.displayName = 'JooxPlayer';
+
+export default JooxPlayer;
